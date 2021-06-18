@@ -87,9 +87,17 @@ namespace ESPTool.Com
 
         private void Uart_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            int d = 0;
-            while ((d = uart.ReadByte()) != -1)
-                framing.Decode((byte)d);
+            //@TODO, when changing the baudrate, closing and opening the port. This throws an error. Should handle this better.
+            try
+            {
+                int d = 0;
+                while ((d = uart.ReadByte()) != -1)
+                    framing.Decode((byte)d);
+            }
+            catch
+            {
+
+            }
         }
 
         private void Framing_FrameRecieved(object sender, Frame e)
