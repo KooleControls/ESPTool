@@ -10,9 +10,9 @@ namespace ESPTool.Firmware
         public SPIInterfaces SPIInterface { get; set; }
         public byte SPIFrequency { get; set; }
         public UInt32 EntryPoint { get; set; }
-        public List<Segment> Segments { get; set; }
+        public List<Segment> Segments { get; set; } = new List<Segment>();
 
-        public static FirmwareImage OpenBIN(string binFile)
+        public static FirmwareImage OpenESP32BIN(string binFile)
         {
             FirmwareImage image = null;
             FileInfo bin = new FileInfo(binFile);
@@ -20,6 +20,10 @@ namespace ESPTool.Firmware
             {
                 using (Stream stream = bin.OpenRead())
                 {
+                    byte[] header = new byte[32];
+                    stream.Read(header, 0, header.Length);
+
+                    /*
                     int check = stream.ReadByte();
 
                     if (check == 0xE9)
@@ -41,6 +45,7 @@ namespace ESPTool.Firmware
                             image.Segments.Add(segment);
                         }
                     }
+                    */
                 }
             }
             return image;

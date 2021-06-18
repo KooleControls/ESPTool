@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ESPTool
+namespace ESPTool.Firmware
 {
 
     public static class StubLoaders

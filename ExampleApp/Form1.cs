@@ -1,11 +1,13 @@
 ﻿using ESPTool.Com;
 using ESPTool.Devices;
+using ESPTool.Firmware;
 using ESPTool.Loaders;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -79,9 +81,61 @@ namespace ExampleApp
 
             AddButton("Upload firmware", async () =>
             {
-                richTextBox1.AppendText("Changing baud to '921600'");
-                bool suc = await dev.ChangeBaud(921600);
-                richTextBox1.AppendText($"{(suc ? "OKE" : "FAIL")}\r\n");
+                if (dev is ESP32 esp)
+                {
+                    richTextBox1.AppendText("Uploading firmware\r\n");
+
+
+
+                    FirmwareImage image = new FirmwareImage();
+                    image.Segments = new List<Segment>();
+
+                    foreach (string file in Directory.GetFiles("firmware", "*.bin"))
+                    {
+                        FileInfo bin = new FileInfo(file);
+
+                        UInt32 offset = 0;
+
+                        switch (Path.GetFileNameWithoutExtension(file))
+                        {
+
+                            case "bootloader":
+                                offset = 0x1000;
+                                break;
+
+                            case "KC240-gateway":
+                                offset = 0x800000;
+                                break;
+                            case "ota_data_initial":
+                                offset = 0xF000;
+                                break;
+                            case "partition-table":
+                                offset = 0x8000;
+                                break;
+
+                        }
+
+                        using (Stream stream = bin.OpenRead())
+                        {
+                            byte[] data = new byte[stream.Length];
+                            stream.Read(data, 0, data.Length);
+
+
+                            Segment seg = new Segment();
+                            seg.Offset = offset;
+                            seg.Data = data;
+
+                            image.Segments.Add(seg);
+                        }
+                    }
+
+                    await esp.UploadToFLASH(image, false);
+
+
+                }
+                else
+                    richTextBox1.AppendText($"Device type isn't ESP32. Please detect first. \r\n");
+
             });
         }
         
