@@ -25,18 +25,36 @@ namespace ESPTool.Loaders
             Com = lod.Com;
         }
 
-        public virtual async Task<ReplyCMD> SYNC(CancellationToken ct = default(CancellationToken))
+        #region Supported by software loader and ROM loaders
+        public virtual async Task<ReplyCMD> FLASH_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default(CancellationToken))
         {
-            RequestCMD tx = new RequestCMD(0x08, false, new byte[] { 0x07, 0x07, 0x12, 0x20, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 });
-            return await DoFrame(tx, ct);
+            RequestCMD request = new RequestCMD(0x02, false, Helpers.Concat(
+                BitConverter.GetBytes(size),
+                BitConverter.GetBytes(blocks),
+                BitConverter.GetBytes(blockSize),
+                BitConverter.GetBytes(offset))
+                );
+            return await DoFrame(request, ct);
         }
 
-        public virtual async Task<ReplyCMD> READ_REG(UInt32 address, CancellationToken ct = default(CancellationToken))
+        public virtual async Task<ReplyCMD> FLASH_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default(CancellationToken))
         {
-            RequestCMD tx = new RequestCMD(0x0a, false, BitConverter.GetBytes(address));
-            return await DoFrame(tx, ct);
+            RequestCMD request = new RequestCMD(0x03, true, Helpers.Concat(
+                BitConverter.GetBytes(blockData.Length),
+                BitConverter.GetBytes(seq),
+                BitConverter.GetBytes(0),
+                BitConverter.GetBytes(0),
+                blockData));
+            return await DoFrame(request, ct);
         }
 
+        public virtual async Task<ReplyCMD> FLASH_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default(CancellationToken))
+        {
+            RequestCMD request = new RequestCMD(0x04, false, Helpers.Concat(
+                BitConverter.GetBytes(execute),
+                BitConverter.GetBytes(entryPoint)));
+            return await DoFrame(request, ct);
+        }
         public virtual async Task<ReplyCMD> MEM_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default(CancellationToken))
         {
             RequestCMD request = new RequestCMD(0x05, false, Helpers.Concat(
@@ -45,6 +63,14 @@ namespace ESPTool.Loaders
                 BitConverter.GetBytes(blockSize),
                 BitConverter.GetBytes(offset))
                 );
+            return await DoFrame(request, ct);
+        }
+
+        public virtual async Task<ReplyCMD> MEM_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default(CancellationToken))
+        {
+            RequestCMD request = new RequestCMD(0x06, false, Helpers.Concat(
+                BitConverter.GetBytes(execute),
+                BitConverter.GetBytes(entryPoint)));
             return await DoFrame(request, ct);
         }
 
@@ -59,13 +85,21 @@ namespace ESPTool.Loaders
             return await DoFrame(request, ct);
         }
 
-        public virtual async Task<ReplyCMD> MEM_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default(CancellationToken))
+        public virtual async Task<ReplyCMD> SYNC(CancellationToken ct = default(CancellationToken))
         {
-            RequestCMD request = new RequestCMD(0x06, false, Helpers.Concat(
-                BitConverter.GetBytes(execute),
-                BitConverter.GetBytes(entryPoint)));
-            return await DoFrame(request, ct);
+            RequestCMD tx = new RequestCMD(0x08, false, new byte[] { 0x07, 0x07, 0x12, 0x20, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 });
+            return await DoFrame(tx, ct);
         }
+
+        public virtual async Task<ReplyCMD> READ_REG(UInt32 address, CancellationToken ct = default(CancellationToken))
+        {
+            RequestCMD tx = new RequestCMD(0x0a, false, BitConverter.GetBytes(address));
+            return await DoFrame(tx, ct);
+        }
+
+        #endregion
+
+        #region Supported by software loader and ESP32 ROM Loader
 
 
         public virtual async Task<ReplyCMD> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default(CancellationToken))
@@ -74,6 +108,13 @@ namespace ESPTool.Loaders
         }
 
 
+        #endregion
+
+        #region Supported by software loader only (ESP8266 & ESP32)
+
+        #endregion
+
+        #region Misc
 
         public async Task<bool> WaitForOHAI(CancellationToken ct = default(CancellationToken))
         {
@@ -152,7 +193,7 @@ namespace ESPTool.Loaders
             return new Frame(raw.ToArray());
         }
 
+        #endregion
 
-       
     }
 }

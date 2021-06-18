@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace ESPTool
@@ -74,6 +75,13 @@ namespace ESPTool
         public static string GetCurrentMethodName([CallerMemberName] string callerName = "")
         {
             return callerName;
+        }
+
+        public static UInt32 ReadUInt32(this Stream stream)
+        {
+            byte[] data = new byte[4];
+            stream.Read(data, 0, data.Length);
+            return BitConverter.ToUInt32(data, 0);
         }
     }
 }

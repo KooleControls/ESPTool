@@ -76,6 +76,13 @@ namespace ExampleApp
                 bool suc = await dev.ChangeBaud(921600);
                 richTextBox1.AppendText($"{(suc ? "OKE" : "FAIL")}\r\n");
             });
+
+            AddButton("Upload firmware", async () =>
+            {
+                richTextBox1.AppendText("Changing baud to '921600'");
+                bool suc = await dev.ChangeBaud(921600);
+                richTextBox1.AppendText($"{(suc ? "OKE" : "FAIL")}\r\n");
+            });
         }
         
 

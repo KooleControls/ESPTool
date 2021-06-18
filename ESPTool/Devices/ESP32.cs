@@ -1,10 +1,12 @@
-﻿using ESPTool.Loaders;
+﻿using ESPTool.Firmware;
+using ESPTool.Loaders;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ESPTool.Devices
 {
+    
     public class ESP32 : Device
     {
         static readonly UInt32 ESP_RAM_BLOCK = 0x1800;
@@ -14,13 +16,10 @@ namespace ESPTool.Devices
             Loader = new ESP32Loader(Loader);
         }
 
-
-        public async Task<bool> StartStubloader(CancellationToken ct = default(CancellationToken))
+        public async Task<bool> UploadFirmware(FirmwareImage firmware, CancellationToken ct = default(CancellationToken))
         {
-            StubLoader stub = StubLoader.ESP32;
-
             bool suc = true;
-            foreach (DataItem di in stub.DataItems)
+            foreach (Segment di in firmware.Segments)
             {
                 if (suc)
                 {
@@ -31,7 +30,7 @@ namespace ESPTool.Devices
                     if (size % blockSize != 0)
                         blocks++;
 
-                    suc = (await Loader.MEM_BEGIN(size, blocks, blockSize, di.Address, ct)).Success;
+                    suc = (await Loader.MEM_BEGIN(size, blocks, blockSize, di.Offset, ct)).Success;
                     for (UInt32 i = 0; i < blocks && suc; i++)
                     {
                         UInt32 srcInd = i * blockSize;
@@ -44,6 +43,17 @@ namespace ESPTool.Devices
                     }
                 }
             }
+
+            //Don't run
+
+            return suc;
+        }
+
+        public async Task<bool> StartStubloader(CancellationToken ct = default(CancellationToken))
+        {
+            FirmwareImage stub = StubLoaders.ESP32;
+
+            bool suc = await UploadFirmware(stub, ct);
 
             if (suc)
             {
