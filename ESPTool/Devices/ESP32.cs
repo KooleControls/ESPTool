@@ -57,7 +57,7 @@ namespace ESPTool.Devices
             return suc;
         }
 
-        public async Task<bool> UploadToFLASH(FirmwareImage firmware, bool execute, Action<double> progressCallback, CancellationToken ct = default(CancellationToken))
+        public async Task<bool> UploadToFLASH(FirmwareImage firmware, bool execute, Action<ProgressReport> progressCallback, CancellationToken ct = default(CancellationToken))
         {
             int written = 0;
             int totalSize = 0;
@@ -89,7 +89,7 @@ namespace ESPTool.Devices
                         suc &= (await Loader.FLASH_DATA(buffer, i, ct)).Success;
 
                         written += (int)len;
-                        progressCallback((double)written / (double)totalSize);
+                        progressCallback(new ProgressReport((float)written / (float)totalSize));
                     }
                 }
             }
