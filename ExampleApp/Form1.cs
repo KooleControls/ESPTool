@@ -70,6 +70,12 @@ namespace ExampleApp
                     richTextBox1.AppendText($"Device type isn't ESP32. Please detect first. \r\n");
             });
 
+            AddButton("Change baudrate", async () =>
+            {
+                richTextBox1.AppendText("Changing baud to '921600'");
+                bool suc = await dev.ChangeBaud(921600);
+                richTextBox1.AppendText($"{(suc ? "OKE" : "FAIL")}\r\n");
+            });
         }
         
 

@@ -68,6 +68,11 @@ namespace ESPTool.Loaders
         }
 
 
+        public virtual async Task<ReplyCMD> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default(CancellationToken))
+        {
+            throw new Exception("This loader doens't support changing baudrate. Use ESP32loader or software loader");
+        }
+
 
 
         public async Task<bool> WaitForOHAI(CancellationToken ct = default(CancellationToken))

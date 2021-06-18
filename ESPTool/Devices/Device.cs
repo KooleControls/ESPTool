@@ -28,12 +28,12 @@ namespace ESPTool.Devices
             Loader.Com.OpenSerial(name, baud);
         }
 
-        public async Task<bool> EnterBootloader(CancellationToken ct = default(CancellationToken))
+        public async Task<bool> EnterBootloader(CancellationToken ct = default)
         {
             return await Loader.Com.EnterBootloader(ct);
         }
 
-        public async Task<bool> Sync(CancellationToken ct = default(CancellationToken))
+        public async Task<bool> Sync(CancellationToken ct = default)
         {
             while (!ct.IsCancellationRequested)
             {
@@ -65,8 +65,16 @@ namespace ESPTool.Devices
             return (ChipTypes)reg;
         }
 
+        public async Task<bool> ChangeBaud(int baud, CancellationToken ct = default)
+        {
+            int oldBaud = Loader.Com.GetBaud();
+            ReplyCMD reply = await Loader.ChangeBaud(baud, oldBaud, ct);
+            if(reply.Success)
+            {
+                Loader.Com.ChangeBaud(baud);
+            }
 
-
-        
+            return reply.Success;
+        }
     }
 }
