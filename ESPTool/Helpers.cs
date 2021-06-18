@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 
 namespace ESPTool
@@ -82,6 +83,29 @@ namespace ESPTool
             byte[] data = new byte[4];
             stream.Read(data, 0, data.Length);
             return BitConverter.ToUInt32(data, 0);
+        }
+
+        //https://stackoverflow.com/questions/39191950/how-to-compress-a-byte-array-without-stream-or-system-io
+        public static byte[] Compress(byte[] data)
+        {
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(output, CompressionLevel.Fastest))
+            {
+                dstream.Write(data, 0, data.Length);
+            }
+            return output.ToArray();
+        }
+
+        //https://stackoverflow.com/questions/39191950/how-to-compress-a-byte-array-without-stream-or-system-io
+        public static byte[] Decompress(byte[] data)
+        {
+            MemoryStream input = new MemoryStream(data);
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(input, CompressionMode.Decompress))
+            {
+                dstream.CopyTo(output);
+            }
+            return output.ToArray();
         }
     }
 }

@@ -106,7 +106,20 @@ namespace ESPTool.Loaders
         {
             throw new Exception("This loader doens't support changing baudrate. Use ESP32loader or software loader");
         }
+        public virtual async Task<ReplyCMD> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default(CancellationToken))
+        {
+            throw new Exception("Not supported, use another loader");
+        }
 
+        public virtual async Task<ReplyCMD> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default(CancellationToken))
+        {
+            throw new Exception("Not supported, use another loader");
+        }
+
+        public virtual async Task<ReplyCMD> FLASH_DEFL_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default(CancellationToken))
+        {
+            throw new Exception("Not supported, use another loader");
+        }
 
         #endregion
 

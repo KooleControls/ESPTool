@@ -31,6 +31,7 @@ namespace ExampleApp
         {
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // flowLayoutPanel1
@@ -49,11 +50,19 @@ namespace ExampleApp
             this.richTextBox1.TabIndex = 1;
             this.richTextBox1.Text = "";
             // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(232, 383);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(406, 23);
+            this.progressBar1.TabIndex = 2;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Name = "Form1";
@@ -67,6 +76,7 @@ namespace ExampleApp
 
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }
 

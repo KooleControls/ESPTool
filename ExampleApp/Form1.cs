@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -129,8 +130,11 @@ namespace ExampleApp
                         }
                     }
 
-                    await esp.UploadToFLASH(image, false);
-
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    bool suc = await esp.UploadToFLASHDeflated(image, false, Progress);
+                    sw.Stop();
+                    richTextBox1.AppendText($"Uploading {(suc ? "OKE" : "FAILED")}. It took {sw.ElapsedMilliseconds}ms \r\n");
 
                 }
                 else
@@ -139,6 +143,11 @@ namespace ExampleApp
             });
         }
         
+        void Progress(double prog )
+        {
+            progressBar1.InvokeIfRequired(() => { progressBar1.Value = (int)(prog * 100); });
+        }
+
 
         void AddButton(string text, Func<Task> act)
         {
