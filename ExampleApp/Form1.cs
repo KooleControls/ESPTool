@@ -50,7 +50,26 @@ namespace ExampleApp
                 richTextBox1.AppendText("GetChipType ");
                 ChipTypes type = await dev.DetectChipType();
                 richTextBox1.AppendText($"{type.ToString()}\r\n");
+
+                if(type == ChipTypes.ESP32)
+                {
+                    dev = new ESP32(dev);
+                    richTextBox1.AppendText($"Changing device to ESP32\r\n");
+                }
             });
+
+            AddButton("Upload stubloader", async () =>
+            {
+                if(dev is ESP32 esp)
+                {
+                    richTextBox1.AppendText("Uploading stubloader ");
+                    bool suc = await esp.StartStubloader();
+                    richTextBox1.AppendText($"{(suc ? "OKE, stubloader is running" : "FAIL")}\r\n");
+                }
+                else
+                    richTextBox1.AppendText($"Device type isn't ESP32. Please detect first. \r\n");
+            });
+
         }
         
 

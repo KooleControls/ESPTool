@@ -9,6 +9,13 @@ namespace ESPTool.Loaders
 {
     public class SoftLoader : Loader
     {
+
+        public SoftLoader(Loader lod) : base(lod)
+        {
+
+        }
+
+
         public async Task<ReplyCMD> CHANGE_BAUDRATE(uint newBaud, uint oldBaud, CancellationToken ct)
         {
             RequestCMD request = new RequestCMD(0x0f, false, Helpers.Concat(

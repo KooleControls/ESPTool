@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ESPTool.Loaders;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace ESPTool.Devices
 
         public ESP32(Device dev) : base(dev)
         {
-
+            Loader = new ESP32Loader(Loader);
         }
 
 
@@ -53,8 +54,13 @@ namespace ESPTool.Devices
                     suc &= await ohai;
                 }
             }
+
+            if(suc)
+            {
+                Loader = new SoftLoader(Loader);
+            }
+
             return suc;
         }
     }
-
 }
