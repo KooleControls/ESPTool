@@ -19,9 +19,10 @@ namespace ESPTool.Devices
         public ESP32(Device dev) : base(dev)
         {
             Loader = new ESP32Loader(Loader);
+
         }
 
-        public async Task<bool> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken))
+        public override async Task<bool> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken))
         {
             bool suc = true;
             foreach (Segment di in firmware.Segments)
@@ -57,7 +58,7 @@ namespace ESPTool.Devices
             return suc;
         }
 
-        public async Task<bool> UploadToFLASH(FirmwareImage firmware, bool execute, Action<ProgressReport> progressCallback, CancellationToken ct = default(CancellationToken))
+        public override async Task<bool> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken))
         {
             int written = 0;
             int totalSize = 0;
@@ -89,7 +90,7 @@ namespace ESPTool.Devices
                         suc &= (await Loader.FLASH_DATA(buffer, i, ct)).Success;
 
                         written += (int)len;
-                        progressCallback(new ProgressReport((float)written / (float)totalSize));
+                        ReportProgressChange((float)written / (float)totalSize);
                     }
                 }
             }
@@ -102,7 +103,7 @@ namespace ESPTool.Devices
             return suc;
         }
 
-        public async Task<bool> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, Action<double> progressCallback, CancellationToken ct = default(CancellationToken))
+        public override async Task<bool> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, Action<double> progressCallback, CancellationToken ct = default(CancellationToken))
         {
             int written = 0;
             int totalSize = 0;
@@ -154,7 +155,7 @@ namespace ESPTool.Devices
             return suc;
         }
 
-        public async Task<bool> StartStubloader(CancellationToken ct = default(CancellationToken))
+        public override async Task<bool> StartStubloader(CancellationToken ct = default(CancellationToken))
         {
             FirmwareImage stub = StubLoaders.ESP32;
 
@@ -169,6 +170,12 @@ namespace ESPTool.Devices
             }
 
             return suc;
+        }
+
+        public override async Task<bool> EraseFlash(CancellationToken ct = default(CancellationToken))
+        {
+            ReplyCMD reply = await Loader.ERASE_FLASH(ct);
+            return reply.Success;
         }
     }
 }

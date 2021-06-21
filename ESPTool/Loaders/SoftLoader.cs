@@ -64,6 +64,11 @@ namespace ESPTool.Loaders
             return await DoFrame(request, ct);
         }
 
+        public override async Task<ReplyCMD> ERASE_FLASH(CancellationToken ct = default(CancellationToken))
+        {
+            RequestCMD request = new RequestCMD(0xd0, false, new byte[0]);
+            return await DoFrame(request, ct);
+        }
 
 
         protected override ReplyCMD ToCommand(Frame frame)

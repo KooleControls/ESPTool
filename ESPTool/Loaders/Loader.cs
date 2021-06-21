@@ -3,6 +3,7 @@ using ESPTool.Com;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,30 +105,43 @@ namespace ESPTool.Loaders
 
         public virtual async Task<ReplyCMD> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default(CancellationToken))
         {
-            throw new Exception("This loader doens't support changing baudrate. Use ESP32loader or software loader");
+            throw GetNotsupportedError();
         }
         public virtual async Task<ReplyCMD> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default(CancellationToken))
         {
-            throw new Exception("Not supported, use another loader");
+            throw GetNotsupportedError();
         }
 
         public virtual async Task<ReplyCMD> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default(CancellationToken))
         {
-            throw new Exception("Not supported, use another loader");
+            throw GetNotsupportedError();
         }
 
         public virtual async Task<ReplyCMD> FLASH_DEFL_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default(CancellationToken))
         {
-            throw new Exception("Not supported, use another loader");
+            throw GetNotsupportedError();
         }
 
         #endregion
 
         #region Supported by software loader only (ESP8266 & ESP32)
+        public virtual async Task<ReplyCMD> ERASE_FLASH(CancellationToken ct = default(CancellationToken))
+        {
+            throw GetNotsupportedError();
+        }
 
         #endregion
 
         #region Misc
+
+        public Exception GetNotsupportedError([CallerMemberName] string callerName = "")
+        {
+            string loader = this.GetType().Name;
+            if (loader == nameof(Loader))
+                loader = "unknown";
+
+            return new Exception($"Current loader '{loader}' doens't support the '{callerName}' function. Upload the stubloader and change to '{nameof(SoftLoader)}'.");
+        }
 
         public async Task<bool> WaitForOHAI(CancellationToken ct = default(CancellationToken))
         {
