@@ -31,9 +31,17 @@ namespace ESPTool.Com
 
         public void OpenSerial(string name, int baud)
         {
-            uart.PortName = name;
-            uart.BaudRate = baud;
-            uart.Open();
+            if (uart.IsOpen && (uart.PortName != name || uart.BaudRate != baud))
+            {
+                uart.Close();
+            }
+
+            if (!uart.IsOpen)
+            {
+                uart.PortName = name;
+                uart.BaudRate = baud;
+                uart.Open();
+            }
         }
 
         public void CloseSerial()
@@ -59,24 +67,36 @@ namespace ESPTool.Com
 
         public async Task<bool> EnterBootloader(CancellationToken ct = default(CancellationToken))
         {
-            return await Task.Run(() =>
-            {
-                //Reset
-                uart.DtrEnable = false;
-                uart.RtsEnable = true;
+            //Reset
+            uart.DtrEnable = false;
+            uart.RtsEnable = true;
 
-                //Hold boot pin
-                uart.DtrEnable = true;
-                uart.RtsEnable = false;
+            //Hold boot pin
+            uart.DtrEnable = true;
+            uart.RtsEnable = false;
 
-                bool cancelled = ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determained by trial and error. 250ms didnt work. We could wait for the uart to say "waiting for download"
+            bool cancelled = ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determained by trial and error. 250ms didnt work. We could wait for the uart to say "waiting for download"
 
-                //Release boot pin
-                uart.DtrEnable = false;
-                uart.RtsEnable = false;
+            //Release boot pin
+            uart.DtrEnable = false;
+            uart.RtsEnable = false;
 
-                return !cancelled;
-            });
+            return !cancelled;
+        }
+
+        public async Task<bool> Reset(CancellationToken ct = default(CancellationToken))
+        {
+            //Reset
+            uart.DtrEnable = false;
+            uart.RtsEnable = true;
+
+            bool cancelled = ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500));
+
+            //Release reset pin
+            uart.DtrEnable = false;
+            uart.RtsEnable = false;
+
+            return !cancelled;
         }
 
         public void SendFrame(Frame frame)
