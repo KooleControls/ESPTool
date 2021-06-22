@@ -89,7 +89,7 @@ namespace ESPTool.Devices
                         result = await Loader.FLASH_DATA(buffer, i, ct);
 
                         written += (int)len;
-                        progress.Report((float)written / (float)totalSize);
+                        progress?.Report((float)written / (float)totalSize);
                     }
 
                     if (result.Success)

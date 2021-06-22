@@ -62,13 +62,13 @@ namespace ESPTool.Devices
                 res = await Loader.SYNC(cts.Token);
                 if (res.Success)
                 {
+                    System.Threading.Thread.Sleep(100); //Reading a register right after syncing will sometimes fail. This delay will fix this, altough it isn't a very nice solution.
                     res = Result.OK;
                     done = true;
                 }
                 else
                 {
-                    //Reading a register right after syncing will sometimes fail. This delay will fix this, altough it isn't a very nice solution.
-                    if (!ct.WaitHandle.WaitOne(100))
+                    if (ct.IsCancellationRequested)
                     {
                         res = Result.TaskCanceled;
                         done = true;

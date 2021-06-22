@@ -2,6 +2,7 @@
 using ESPTool.Firmware;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +10,12 @@ using System.Threading.Tasks;
 namespace ESPTool
 {
 
-    
-
     public class ESPTool
     {
         Device device = new Device();
+        public TextWriter Logger { get; set; } = Console.Out;
+
+
         public ESPTool()
         {
             //programmer.OpenSerial("COM30", 115200);
@@ -27,15 +29,15 @@ namespace ESPTool
             Result result = Result.OK;
 
             device.OpenSerial(com, 115200);
-            Console.WriteLine($"Serialport {com} opened");
+            Logger.WriteLine($"Serialport {com} opened");
 
             if (result.Success) 
                 result = await device.EnterBootloader(ct);
-            Console.WriteLine( $"Bootloader started {(result.Success ? "sucsesfully" : "failed")}.");
+            Logger.WriteLine( $"Bootloader started {(result.Success ? "sucsesfully" : "failed")}.");
 
             if (result.Success) 
                 result = await device.Sync(ct);
-            Console.WriteLine( $"Device synced {(result.Success ? "sucsesfully" : "failed")}.");
+            Logger.WriteLine( $"Device synced {(result.Success ? "sucsesfully" : "failed")}.");
 
 
             if (result.Success)
@@ -45,14 +47,14 @@ namespace ESPTool
                 if (result.Success)
                 {
                     ChipTypes ty = resChipType.Value;
-                    Console.WriteLine( $"Chip {ty.ToString()} detected.");
+                    Logger.WriteLine( $"Chip {ty.ToString()} detected.");
                     if (ty == ChipTypes.ESP32)
                     {
                         device = new ESP32(device);
                     }
                     else
                     {
-                        Console.WriteLine( $"Wrong device detected.");
+                        Logger.WriteLine( $"Wrong device detected.");
                         result = Result.WrongChip;
                     }
                 }
@@ -60,11 +62,11 @@ namespace ESPTool
 
             if (result.Success) 
                 result = await device.StartStubloader();
-            Console.WriteLine( $"Stubloader uploaded {(result.Success ? "sucsesfully" : "failed")}.");
+            Logger.WriteLine( $"Stubloader uploaded {(result.Success ? "sucsesfully" : "failed")}.");
 
             if (result.Success) 
                 result = await device.ChangeBaud(baudrate);
-            Console.WriteLine( $"Baudrate changed to {baudrate} {(result.Success ? "sucsesfully" : "failed")}.");
+            Logger.WriteLine( $"Baudrate changed to {baudrate} {(result.Success ? "sucsesfully" : "failed")}.");
 
             return result;
         }
@@ -73,7 +75,7 @@ namespace ESPTool
         {
             Result res = await device.CloseSerial();
             if(res.Success)
-                Console.WriteLine( $"Com closed.");
+                Logger.WriteLine( $"Com closed.");
             return res;
         }
 
@@ -106,10 +108,10 @@ namespace ESPTool
         public async Task<Result> Erase(string com, int baudrate, CancellationToken ct = default)
         {
             Result result = await Initialize(com, baudrate, ct);
-            Console.WriteLine( $"Erasing flash");
+            Logger.WriteLine( $"Erasing flash");
             if (result.Success) result = await device.EraseFlash(ct);
-            Console.WriteLine( $"Erasing flash {baudrate} {(result.Success ? "done" : "failed")}.");
-            Console.WriteLine( $"Resetting device.");
+            Logger.WriteLine( $"Erasing flash {(result.Success ? "done" : "failed")}.");
+            Logger.WriteLine( $"Resetting device.");
             if (result.Success) result = await device.Reset(ct);
             Result resFin = await Finalize();
 
