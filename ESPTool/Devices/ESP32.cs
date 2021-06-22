@@ -65,7 +65,7 @@ namespace ESPTool.Devices
             int totalSize = 0;
             foreach (Segment seg in firmware.Segments)
                 totalSize += seg.Data.Length;
-
+            float prevProg = 0;
             foreach (Segment segment in firmware.Segments)
             {
                 if (result.Success)
@@ -89,7 +89,12 @@ namespace ESPTool.Devices
                         result = await Loader.FLASH_DATA(buffer, i, ct);
 
                         written += (int)len;
-                        progress?.Report((float)written / (float)totalSize);
+                        float prog = (float)written / (float)totalSize;
+                        if((prog - prevProg) > 0.01)
+                        {
+                            progress?.Report(prog);
+                            prevProg = prog;
+                        }
                     }
 
                     if (result.Success)

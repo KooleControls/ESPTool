@@ -87,12 +87,12 @@ namespace ESPTool
             if(deflated)
             {
                 if (result.Success) 
-                    result = await device.UploadToFLASHDeflated(fi, false, ct);
+                    result = await device.UploadToFLASHDeflated(fi, false, ct, progress);
             }
             else
             {
                 if (result.Success) 
-                    result = await device.UploadToFLASH(fi, false, ct);
+                    result = await device.UploadToFLASH(fi, false, ct, progress);
             }
             if (result.Success) 
                 result = await device.Reset(ct);
