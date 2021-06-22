@@ -14,7 +14,6 @@ namespace ESPTool.Devices
 
     public class Device
     {
-        public event EventHandler<float> OnProgressChanged;
         protected Loader Loader { get; set; } = new Loader();
 
         public Device()
@@ -22,117 +21,112 @@ namespace ESPTool.Devices
 
         }
 
-        protected void ReportProgressChange(float val)
-        {
-            OnProgressChanged?.Invoke(this, val);
-        }
-
         public Device(Device dev)
         {
             Loader = dev.Loader;
-            this.OnProgressChanged = dev.OnProgressChanged;
         }
 
-        public void OpenSerial(string name, int baud)
+        public async Task<Result> OpenSerial(string name, int baud)
         {
             Loader.Com.OpenSerial(name, baud);
+            return Result.OK;
         }
 
-        public void CloseSerial()
+        public async Task<Result> CloseSerial()
         {
             Loader.Com.CloseSerial();
+            return Result.OK;
         }
 
-        public async Task<bool> EnterBootloader(CancellationToken ct = default)
+        public async Task<Result> EnterBootloader(CancellationToken ct = default)
         {
             return await Loader.Com.EnterBootloader(ct);
         }
 
-        public async Task<bool> Reset(CancellationToken ct = default)
+        public async Task<Result> Reset(CancellationToken ct = default)
         {
             return await Loader.Com.Reset(ct);
         }
 
-        public async Task<bool> Sync(CancellationToken ct = default)
+        public async Task<Result> Sync(CancellationToken ct = default)
         {
-            while (!ct.IsCancellationRequested)
+            Result res = Result.UnknownError;
+            bool done = false;
+        
+            while (!done)
             {
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ct.Register(() => cts.Cancel());
                 cts.CancelAfter(100);
 
-                ReplyCMD frame = await Loader.SYNC(cts.Token);
-                if (frame.Success)
+                res = await Loader.SYNC(cts.Token);
+                if (res.Success)
+                {
+                    res = Result.OK;
+                    done = true;
+                }
+                else
                 {
                     //Reading a register right after syncing will sometimes fail. This delay will fix this, altough it isn't a very nice solution.
-                    ct.WaitHandle.WaitOne(100); 
-                    return true;
+                    if (!ct.WaitHandle.WaitOne(100))
+                    {
+                        res = Result.TaskCanceled;
+                        done = true;
+                    }
+
                 }
             }
-            return false;
+            return res;
         }
 
-        public async Task<uint> ReadRegister(uint address, CancellationToken ct = default)
+        public async Task<Result<UInt32>> ReadRegister(uint address, CancellationToken ct = default)
         {
-            ReplyCMD r = await Loader.READ_REG(address, ct);
-            if (r.Success)
-                return r.Value;
-            else
-                throw new Exception("Couln't read register");
+            return await Loader.READ_REG(address, ct);
         }
 
 
-        public async Task<ChipTypes> DetectChipType()
+        public async Task<Result<ChipTypes>> DetectChipType()
         {
             UInt32 CHIP_DETECT_MAGIC_REG_ADDR = 0x40001000; // This ROM address has a different value on each chip model
-            UInt32 reg = await ReadRegister(CHIP_DETECT_MAGIC_REG_ADDR);
-            return (ChipTypes)reg;
+            Result<UInt32> reg = await ReadRegister(CHIP_DETECT_MAGIC_REG_ADDR);
+            return new Result<ChipTypes> { Success = reg.Success, Error = reg.Error, Value = (ChipTypes)reg.Value };
         }
 
-        public async Task<bool> ChangeBaud(int baud, CancellationToken ct = default)
+        public async Task<Result> ChangeBaud(int baud, CancellationToken ct = default)
         {
             int oldBaud = Loader.Com.GetBaud();
-            ReplyCMD reply = await Loader.ChangeBaud(baud, oldBaud, ct);
-            if(reply.Success)
+            Result result = await Loader.ChangeBaud(baud, oldBaud, ct);
+            if(result.Success)
             {
                 Loader.Com.ChangeBaud(baud);
             }
 
-            return reply.Success;
+            return result;
         }
 
-        public Exception GetError([CallerMemberName] string callerName = "")
+        public virtual async Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
         {
-            string device = this.GetType().Name;
-            if (device == nameof(Device))
-                device = "unknown";
-
-            return new Exception($"Current device '{device}' doens't support the '{callerName}' function. Use '{nameof(DetectChipType)}' to detect the right device.");
+            return Result.UnsupportedByLoader;
         }
 
-        public virtual async Task<bool> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken))
+        public virtual async Task<Result> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
-            throw GetError();
+            return Result.UnsupportedByLoader;
         }
 
-        public virtual async Task<bool> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken))
+        public virtual async Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
-            throw GetError();
+            return Result.UnsupportedByLoader;
         }
 
-        public virtual async Task<bool> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, Action<double> progressCallback, CancellationToken ct = default(CancellationToken))
+        public virtual async Task<Result> StartStubloader(CancellationToken ct = default)
         {
-            throw GetError();
+            return Result.UnsupportedByLoader;
         }
 
-        public virtual async Task<bool> StartStubloader(CancellationToken ct = default(CancellationToken))
+        public virtual async Task<Result> EraseFlash(CancellationToken ct = default)
         {
-            throw GetError();
-        }
-
-        public virtual async Task<bool> EraseFlash(CancellationToken ct = default(CancellationToken))
-        {
-            throw GetError();
+            return Result.UnsupportedByLoader;
         }
 
 

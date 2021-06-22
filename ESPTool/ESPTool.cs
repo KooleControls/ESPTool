@@ -13,86 +13,110 @@ namespace ESPTool
 
     public class ESPTool
     {
-        public event EventHandler<float> OnProgressValueChanged;
-        public event EventHandler<string> OnProgressMessage;
         Device device = new Device();
         public ESPTool()
         {
             //programmer.OpenSerial("COM30", 115200);
-            device.OnProgressChanged += (sender, e) => OnProgressValueChanged?.Invoke(this, e);
         }
 
 
 
-        private async Task<bool> Initialize(string com, int baudrate, CancellationToken ct = default)
+        private async Task<Result> Initialize(string com, int baudrate, CancellationToken ct = default)
         {
 
-            bool suc = true;
+            Result result = Result.OK;
 
             device.OpenSerial(com, 115200);
-            OnProgressMessage?.Invoke(this, $"Serialport {com} opened");
+            Console.WriteLine($"Serialport {com} opened");
 
-            if (suc) suc &= await device.EnterBootloader(ct);
-            OnProgressMessage?.Invoke(this, $"Bootloader started {(suc ? "sucsesfully" : "failed")}.");
+            if (result.Success) 
+                result = await device.EnterBootloader(ct);
+            Console.WriteLine( $"Bootloader started {(result.Success ? "sucsesfully" : "failed")}.");
 
-            if (suc) suc &= await device.Sync(ct);
-            OnProgressMessage?.Invoke(this, $"Device synced {(suc ? "sucsesfully" : "failed")}.");
+            if (result.Success) 
+                result = await device.Sync(ct);
+            Console.WriteLine( $"Device synced {(result.Success ? "sucsesfully" : "failed")}.");
 
 
-            if (suc)
+            if (result.Success)
             {
-                ChipTypes ty = await device.DetectChipType();
-                OnProgressMessage?.Invoke(this, $"Chip {ty.ToString()} detected.");
-
-                if (ty == ChipTypes.ESP32)
+                Result<ChipTypes> resChipType = await device.DetectChipType();
+                result = resChipType;
+                if (result.Success)
                 {
-                    device = new ESP32(device);
-                }
-                else
-                {
-                    OnProgressMessage?.Invoke(this, $"Wrong device detected.");
-                    suc = false;
+                    ChipTypes ty = resChipType.Value;
+                    Console.WriteLine( $"Chip {ty.ToString()} detected.");
+                    if (ty == ChipTypes.ESP32)
+                    {
+                        device = new ESP32(device);
+                    }
+                    else
+                    {
+                        Console.WriteLine( $"Wrong device detected.");
+                        result = Result.WrongChip;
+                    }
                 }
             }
 
-            if (suc) suc &= await device.StartStubloader();
-            OnProgressMessage?.Invoke(this, $"Stubloader uploaded {(suc ? "sucsesfully" : "failed")}.");
+            if (result.Success) 
+                result = await device.StartStubloader();
+            Console.WriteLine( $"Stubloader uploaded {(result.Success ? "sucsesfully" : "failed")}.");
 
-            if (suc) suc &= await device.ChangeBaud(baudrate);
-            OnProgressMessage?.Invoke(this, $"Baudrate changed to {baudrate} {(suc ? "sucsesfully" : "failed")}.");
+            if (result.Success) 
+                result = await device.ChangeBaud(baudrate);
+            Console.WriteLine( $"Baudrate changed to {baudrate} {(result.Success ? "sucsesfully" : "failed")}.");
 
-            return suc;
+            return result;
         }
 
-        private async Task<bool> Finalize() //right now not cancelable, really should do these things. 
+        private async Task<Result> Finalize() //right now not cancelable, really should do these things. 
         {
-            bool suc = true;
-            device.CloseSerial();
-            OnProgressMessage?.Invoke(this, $"Com closed.");
-            return suc;
+            Result res = await device.CloseSerial();
+            if(res.Success)
+                Console.WriteLine( $"Com closed.");
+            return res;
         }
 
 
 
-        public async Task<bool> FlashFirmware(string com, int baudrate, FirmwareImage fi, CancellationToken ct = default)
+        public async Task<Result> FlashFirmware(string com, int baudrate, FirmwareImage fi, bool deflated, CancellationToken ct = default, Progress<float> progress = default)
         {
-            bool suc = await Initialize(com, baudrate, ct);
-            if (suc) suc &= await device.UploadToFLASH(fi, false, ct);
-            if (suc) suc &= await device.Reset(ct);
-            await Finalize();
-            return suc;
+            Result result = await Initialize(com, baudrate, ct);
+            if(deflated)
+            {
+                if (result.Success) 
+                    result = await device.UploadToFLASHDeflated(fi, false, ct);
+            }
+            else
+            {
+                if (result.Success) 
+                    result = await device.UploadToFLASH(fi, false, ct);
+            }
+            if (result.Success) 
+                result = await device.Reset(ct);
+
+            Result resFin = await Finalize();
+
+            if (result.Success)
+                result = resFin;
+
+            return result;
         }
 
-        public async Task<bool> Erase(string com, int baudrate, CancellationToken ct = default)
+        public async Task<Result> Erase(string com, int baudrate, CancellationToken ct = default)
         {
-            bool suc = await Initialize(com, baudrate, ct);
-            OnProgressMessage?.Invoke(this, $"Erasing flash");
-            if (suc) suc &= await device.EraseFlash(ct);
-            OnProgressMessage?.Invoke(this, $"Erasing flash {baudrate} {(suc ? "done" : "failed")}.");
-            OnProgressMessage?.Invoke(this, $"Resetting device.");
-            if (suc) suc &= await device.Reset(ct);
-            await Finalize();
-            return suc;
+            Result result = await Initialize(com, baudrate, ct);
+            Console.WriteLine( $"Erasing flash");
+            if (result.Success) result = await device.EraseFlash(ct);
+            Console.WriteLine( $"Erasing flash {baudrate} {(result.Success ? "done" : "failed")}.");
+            Console.WriteLine( $"Resetting device.");
+            if (result.Success) result = await device.Reset(ct);
+            Result resFin = await Finalize();
+
+            if (result.Success)
+                result = resFin;
+
+            return result;
         }
 
     }

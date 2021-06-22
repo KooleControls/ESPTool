@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
+    <PackageReference Include="zlib.net" Version="1.0.4" />
   </ItemGroup>
 
 </Project>

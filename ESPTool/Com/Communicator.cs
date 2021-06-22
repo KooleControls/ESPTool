@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO.Ports;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -62,10 +60,10 @@ namespace ESPTool.Com
         }
 
 
-        
 
 
-        public async Task<bool> EnterBootloader(CancellationToken ct = default(CancellationToken))
+
+        public async Task<Result> EnterBootloader(CancellationToken ct = default(CancellationToken))
         {
             //Reset
             uart.DtrEnable = false;
@@ -81,10 +79,10 @@ namespace ESPTool.Com
             uart.DtrEnable = false;
             uart.RtsEnable = false;
 
-            return !cancelled;
+            return cancelled ? Result.TaskCanceled : Result.OK;
         }
 
-        public async Task<bool> Reset(CancellationToken ct = default(CancellationToken))
+        public async Task<Result> Reset(CancellationToken ct = default(CancellationToken))
         {
             //Reset
             uart.DtrEnable = false;
@@ -96,7 +94,7 @@ namespace ESPTool.Com
             uart.DtrEnable = false;
             uart.RtsEnable = false;
 
-            return !cancelled;
+            return cancelled ? Result.TaskCanceled : Result.OK;
         }
 
         public void SendFrame(Frame frame)

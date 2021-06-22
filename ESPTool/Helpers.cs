@@ -85,27 +85,28 @@ namespace ESPTool
             return BitConverter.ToUInt32(data, 0);
         }
 
-        //https://stackoverflow.com/questions/39191950/how-to-compress-a-byte-array-without-stream-or-system-io
         public static byte[] Compress(byte[] data)
         {
-            MemoryStream output = new MemoryStream();
-            using (DeflateStream dstream = new DeflateStream(output, CompressionLevel.Fastest))
-            {
-                dstream.Write(data, 0, data.Length);
-            }
-            return output.ToArray();
-        }
+            byte[] compressedBytes;
 
-        //https://stackoverflow.com/questions/39191950/how-to-compress-a-byte-array-without-stream-or-system-io
-        public static byte[] Decompress(byte[] data)
-        {
-            MemoryStream input = new MemoryStream(data);
-            MemoryStream output = new MemoryStream();
-            using (DeflateStream dstream = new DeflateStream(input, CompressionMode.Decompress))
+            using (var uncompressedStream = new MemoryStream(data))
             {
-                dstream.CopyTo(output);
+                using (var compressedStream = new MemoryStream())
+                {
+                    // setting the leaveOpen parameter to true to ensure that compressedStream will not be closed when compressorStream is disposed
+                    // this allows compressorStream to close and flush its buffers to compressedStream and guarantees that compressedStream.ToArray() can be called afterward
+                    // although MSDN documentation states that ToArray() can be called on a closed MemoryStream, I don't want to rely on that very odd behavior should it ever change
+                    using (var compressorStream = new GZipStream(compressedStream, CompressionLevel.Optimal, true))
+                    {
+                        uncompressedStream.CopyTo(compressorStream);
+                    }
+
+                    // call compressedStream.ToArray() after the enclosing DeflateStream has closed and flushed its buffer to compressedStream
+                    compressedBytes = compressedStream.ToArray();
+                }
             }
-            return output.ToArray();
+
+            return compressedBytes;
         }
     }
 }
