@@ -17,7 +17,6 @@ namespace ESPTool.Loaders
 
         public Loader()
         {
-           
         }
 
         public Loader(Loader lod)
@@ -175,12 +174,13 @@ namespace ESPTool.Loaders
                     frameReplyPending.TrySetCanceled();
                 });
 
-                Com.FrameRecieved += (sender, e) =>
+                Com.FrameRecieved += ((sender, e) =>
                 {
                     frameReplyPending?.TrySetResult(e);
-                };
+                });
 
                 Frame tx = FromCommand(frame);
+                Com.ClearBuffer();
                 Com.SendFrame(tx);
 
                 Frame rx = await frameReplyPending.Task;
@@ -188,7 +188,7 @@ namespace ESPTool.Loaders
             }
             catch (TaskCanceledException)
             {
-
+                rxFrame.Error = Errors.TaskCancelled;
             }
             return rxFrame;
         }

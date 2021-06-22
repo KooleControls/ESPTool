@@ -27,6 +27,12 @@ namespace ESPTool.Com
             uart.Close();
         }
 
+        public void ClearBuffer()
+        {
+            uart.DiscardInBuffer();
+            framing.ClearBuffer();
+        }
+
         public void OpenSerial(string name, int baud)
         {
             if (uart.IsOpen && (uart.PortName != name || uart.BaudRate != baud))
@@ -108,9 +114,12 @@ namespace ESPTool.Com
             //@TODO, when changing the baudrate, closing and opening the port. This throws an error. Should handle this better.
             try
             {
-                int d = 0;
-                while ((d = uart.ReadByte()) != -1)
-                    framing.Decode((byte)d);
+                while(uart.BytesToRead > 0)
+                {
+                    byte[] rx = new byte[uart.BytesToRead];
+                    uart.Read(rx, 0, rx.Length);
+                    framing.Decode(rx);
+                }  
             }
             catch
             {
