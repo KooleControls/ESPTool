@@ -28,9 +28,12 @@ namespace ESPTool.Com
                 }
                 else if (data == 0xC0)
                 {
-                    startFound = false;
-                    FrameRecieved?.Invoke(this, new Frame(frameBuffer.ToArray()));
-                    frameBuffer.Clear();
+                    if (frameBuffer.Count > 0)
+                    {
+                        startFound = false;
+                        FrameRecieved?.Invoke(this, new Frame(frameBuffer.ToArray()));
+                        frameBuffer.Clear();
+                    }
                 }
                 else if (data == 0xDB)
                     esc = true;
