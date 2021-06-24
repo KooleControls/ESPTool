@@ -158,7 +158,7 @@ namespace ESPTool.Devices
                 for (int i = 0; i < numBlocks && result.Success; i++)
                 {
                     byte[] cBlock = cImg.SubArray(i * FLASH_WRITE_SIZE, FLASH_WRITE_SIZE, (byte)0xFF);
-                    result = await Loader.FLASH_DATA(cBlock, (UInt32)i, ct);
+                    result = await Loader.FLASH_DEFL_DATA(cBlock, (UInt32)i, ct);
                     
                     written += FLASH_WRITE_SIZE;
                     float prog = (float)written / (float)totalSize;
@@ -175,8 +175,6 @@ namespace ESPTool.Devices
                     result = await Loader.READ_REG(0x40001000, ct);
                 }
 
-                
-                /*
                 
                 if (result.Success)
                 {
@@ -196,13 +194,13 @@ namespace ESPTool.Devices
                         else
                             result = new Result { Success = false, Error = Errors.MD5Mismatch };
                     }
-                }*/
+                }
             }
 
 
             if (result.Success)
             {
-                result = await Loader.FLASH_END((UInt32)(execute ? 0 : 1), firmware.EntryPoint, ct);
+                result = await Loader.FLASH_DEFL_END((UInt32)(execute ? 0 : 1), firmware.EntryPoint, ct);
             }
 
             return result;

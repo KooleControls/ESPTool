@@ -89,7 +89,7 @@ namespace ESPTool
             CompressData(data, out compressedBytes);
             return compressedBytes;
 
-
+            /*
             using (var uncompressedStream = new MemoryStream(data))
             {
                 using (var compressedStream = new MemoryStream())
@@ -107,7 +107,7 @@ namespace ESPTool
                 }
             }
 
-            return compressedBytes;
+            return compressedBytes;*/
         }
 
 
