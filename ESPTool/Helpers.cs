@@ -82,57 +82,33 @@ namespace ESPTool
             return BitConverter.ToUInt32(data, 0);
         }
 
+
         public static byte[] Compress(byte[] data)
         {
-            byte[] compressedBytes;
-
-            CompressData(data, out compressedBytes);
-            return compressedBytes;
-
-            /*
-            using (var uncompressedStream = new MemoryStream(data))
-            {
-                using (var compressedStream = new MemoryStream())
-                {
-                    // setting the leaveOpen parameter to true to ensure that compressedStream will not be closed when compressorStream is disposed
-                    // this allows compressorStream to close and flush its buffers to compressedStream and guarantees that compressedStream.ToArray() can be called afterward
-                    // although MSDN documentation states that ToArray() can be called on a closed MemoryStream, I don't want to rely on that very odd behavior should it ever change
-                    using (var compressorStream = new GZipStream(compressedStream, CompressionLevel.Optimal, true))
-                    {
-                        uncompressedStream.CopyTo(compressorStream);
-                    }
-
-                    // call compressedStream.ToArray() after the enclosing DeflateStream has closed and flushed its buffer to compressedStream
-                    compressedBytes = compressedStream.ToArray();
-                }
-            }
-
-            return compressedBytes;*/
-        }
-
-
-        public static void CompressData(byte[] inData, out byte[] outData)
-        {
+            byte[] outdata;
             using (MemoryStream outMemoryStream = new MemoryStream())
             using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, zlibConst.Z_DEFAULT_COMPRESSION))
-            using (Stream inMemoryStream = new MemoryStream(inData))
+            using (Stream inMemoryStream = new MemoryStream(data))
             {
                 CopyStream(inMemoryStream, outZStream);
                 outZStream.finish();
-                outData = outMemoryStream.ToArray();
+                outdata = outMemoryStream.ToArray();
             }
+            return outdata;
         }
 
-        public static void DecompressData(byte[] inData, out byte[] outData)
+        public static byte[] Decompress(byte[] data)
         {
+            byte[] outdata;
             using (MemoryStream outMemoryStream = new MemoryStream())
             using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream))
-            using (Stream inMemoryStream = new MemoryStream(inData))
+            using (Stream inMemoryStream = new MemoryStream(data))
             {
                 CopyStream(inMemoryStream, outZStream);
                 outZStream.finish();
-                outData = outMemoryStream.ToArray();
+                outdata = outMemoryStream.ToArray();
             }
+            return outdata;
         }
 
         public static void CopyStream(System.IO.Stream input, System.IO.Stream output)
