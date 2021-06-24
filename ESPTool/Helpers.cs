@@ -2,23 +2,20 @@
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
+using zlib;
 
 namespace ESPTool
 {
     public static class Helpers
     {
-        /// <summary>
-        /// Creates a copy of this array.
-        /// </summary>
-        /// <typeparam name="T">Type of items in array</typeparam>
-        /// <param name="data">The array to copy</param>
-        /// <param name="index">Start index</param>
-        /// <param name="length">Number of items to be copied</param>
-        /// <returns>A partial copy of the origional</returns>
-        public static T[] SubArray<T>(this T[] data, int index, int length)
+
+        public static T[] SubArray<T>(this T[] data, int index, int length, T padding = default)
         {
             T[] result = new T[length];
-            Array.Copy(data, index, result, 0, length);
+            int len = Math.Min(length, data.Length - index);
+            Array.Copy(data, index, result, 0, len);
+            for (int i = data.Length; i < length; i++)
+                result[i] = padding;
             return result;
         }
 
@@ -89,6 +86,10 @@ namespace ESPTool
         {
             byte[] compressedBytes;
 
+            CompressData(data, out compressedBytes);
+            return compressedBytes;
+
+
             using (var uncompressedStream = new MemoryStream(data))
             {
                 using (var compressedStream = new MemoryStream())
@@ -107,6 +108,42 @@ namespace ESPTool
             }
 
             return compressedBytes;
+        }
+
+
+        public static void CompressData(byte[] inData, out byte[] outData)
+        {
+            using (MemoryStream outMemoryStream = new MemoryStream())
+            using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, zlibConst.Z_DEFAULT_COMPRESSION))
+            using (Stream inMemoryStream = new MemoryStream(inData))
+            {
+                CopyStream(inMemoryStream, outZStream);
+                outZStream.finish();
+                outData = outMemoryStream.ToArray();
+            }
+        }
+
+        public static void DecompressData(byte[] inData, out byte[] outData)
+        {
+            using (MemoryStream outMemoryStream = new MemoryStream())
+            using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream))
+            using (Stream inMemoryStream = new MemoryStream(inData))
+            {
+                CopyStream(inMemoryStream, outZStream);
+                outZStream.finish();
+                outData = outMemoryStream.ToArray();
+            }
+        }
+
+        public static void CopyStream(System.IO.Stream input, System.IO.Stream output)
+        {
+            byte[] buffer = new byte[2000];
+            int len;
+            while ((len = input.Read(buffer, 0, 2000)) > 0)
+            {
+                output.Write(buffer, 0, len);
+            }
+            output.Flush();
         }
     }
 }

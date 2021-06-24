@@ -5,6 +5,11 @@ namespace ESPTool
     public class Result<T> : Result
     {
         public T Value { get; set; }
+
+        public override string ToString()
+        {
+            return Success ? "Success: " + Value.ToString() : "Error: " + Error.ToString();
+        }
     }
 
     public class Result
@@ -18,6 +23,11 @@ namespace ESPTool
         public static Result UnsupportedByLoader { get => new Result { Error = Errors.UnsupportedByLoader, Success = false }; }
         public static Result WrongChip { get => new Result { Error = Errors.WrongChip, Success = false }; }
         public static Result UnknownError { get => new Result { Error = Errors.Unknown, Success = true }; }
+
+        public override string ToString()
+        {
+            return Success ? "Success" : "Error: " + Error.ToString();
+        }
     };
 }
 

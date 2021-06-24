@@ -44,8 +44,8 @@ namespace ESPTool.Loaders
         public override async Task<Result> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default(CancellationToken))
         {
             RequestCMD request = new RequestCMD(0x10, false, Helpers.Concat(
-                BitConverter.GetBytes(size),
-                BitConverter.GetBytes(blocks),
+                BitConverter.GetBytes(size),        //stub expects number of bytes here, manages erasing internally. ROM expects rounded up to erase block size
+                BitConverter.GetBytes(blocks),      
                 BitConverter.GetBytes(blockSize),
                 BitConverter.GetBytes(offset))
                 );
@@ -54,6 +54,8 @@ namespace ESPTool.Loaders
 
         public override async Task<Result> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default(CancellationToken))
         {
+            //ROM code writes block to flash before ACKing
+            //Stub ACKs when block is received, then writes to flash while receiving the block after it
             RequestCMD request = new RequestCMD(0x11, true, Helpers.Concat(
                 BitConverter.GetBytes(blockData.Length),
                 BitConverter.GetBytes(seq),
