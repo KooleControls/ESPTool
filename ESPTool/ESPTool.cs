@@ -2,6 +2,7 @@
 using ESPTool.Firmware;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -77,8 +78,11 @@ namespace ESPTool
 
         public async Task<Result> FlashFirmware(string com, int baudrate, FirmwareImage fi, bool deflated, CancellationToken ct = default, Progress<float> progress = default)
         {
+            Stopwatch swInit = new Stopwatch();
+            swInit.Start();
             Result result = await Initialize(com, baudrate, ct);
-            if(deflated)
+            
+            if (deflated)
             {
                 if (result.Success) 
                     result = await device.UploadToFLASHDeflated(fi, false, ct, progress);
@@ -95,6 +99,8 @@ namespace ESPTool
 
             if (result.Success)
                 result = resFin;
+            swInit.Stop();
+            Logger.WriteLine($"Flasing firmware {(deflated?"compressed":"not compressed")} took '{(swInit.ElapsedMilliseconds / 1000).ToString("F2")}'sec. {(result.Success ? "Success" : $"Failed, error = '{result.Error}'")}.");
 
             return result;
         }
