@@ -3,6 +3,10 @@ Created the Espressif ESPTool in native C#
 
 This tool is still under development. Right now only support for flashing and erasing the ESP32 is added.
 
+[![NuGet version (ESPTool)](https://img.shields.io/nuget/v/ESPTool)](https://www.nuget.org/packages/ESPTool/)
+
+
+
 
 ## Some documentation
 Altough the idea is to add more documentation, right now I lack the time to create a neath wiki. For now this will have to do.
