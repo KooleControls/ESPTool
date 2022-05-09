@@ -28,7 +28,7 @@ namespace ExampleApp
         private void Form1_Load(object sender, EventArgs e)
         {
 
-            AddButton("Open com", async () =>
+            AddButton("Open com", async () => 
             {
                 richTextBox1.AppendText("Opening com\r\n");
                 dev.OpenSerial("COM56", 115200);
@@ -63,7 +63,7 @@ namespace ExampleApp
 
             AddButton("Upload stubloader", async () =>
             {
-                if (dev is ESP32 esp)
+                if(dev is ESP32 esp)
                 {
                     richTextBox1.AppendText("Uploading stubloader ");
                     var suc = await esp.StartStubloader();
@@ -91,7 +91,7 @@ namespace ExampleApp
                     FirmwareImage image = new FirmwareImage();
                     image.Segments = new List<Segment>();
 
-                    foreach (string file in Directory.GetFiles("Firmware", "*.bin"))
+                    foreach (string file in Directory.GetFiles("firmware", "*.bin"))
                     {
                         FileInfo bin = new FileInfo(file);
 
@@ -104,11 +104,11 @@ namespace ExampleApp
                                 offset = 0x1000;
                                 break;
 
-                            case "Firmware":
-                                offset = 0x10000;
+                            case "KC240-gateway":
+                                offset = 0x800000;
                                 break;
-                            case "storage":
-                                offset = 0x110000;
+                            case "ota_data_initial":
+                                offset = 0xF000;
                                 break;
                             case "partition-table":
                                 offset = 0x8000;
@@ -137,7 +137,7 @@ namespace ExampleApp
 
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
-                    var suc = await esp.UploadToFLASHDeflated(image, false, default, progress);
+                    var suc = await esp.UploadToFLASHDeflated(image, false, progress, default);
                     sw.Stop();
                     richTextBox1.AppendText($"Uploading {(suc.Success ? "OKE" : "FAILED")}. It took {sw.ElapsedMilliseconds}ms \r\n");
 
@@ -147,8 +147,8 @@ namespace ExampleApp
 
             });
         }
-
-        void Progress(double prog)
+        
+        void Progress(double prog )
         {
             progressBar1.InvokeIfRequired(() => { progressBar1.Value = (int)(prog * 100); });
         }
@@ -159,7 +159,7 @@ namespace ExampleApp
             Button btn = new Button();
             btn.Width = flowLayoutPanel1.Width - flowLayoutPanel1.Margin.Left - flowLayoutPanel1.Margin.Right;
             btn.Text = text;
-            btn.Click += async (sender, e) =>
+            btn.Click += async (sender, e) => 
             {
                 flowLayoutPanel1.Enabled = false;
                 await act();

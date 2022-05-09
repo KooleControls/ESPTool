@@ -53,8 +53,7 @@ namespace ESPTool.Devices
             Result res = Result.UnknownError;
             bool done = false;
         
-            int try_no = 0;
-            while (!done && try_no < 100)
+            while (!done)
             {
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ct.Register(() => cts.Cancel());
@@ -74,7 +73,7 @@ namespace ESPTool.Devices
                         res = Result.TaskCanceled;
                         done = true;
                     }
-                    try_no++;
+
                 }
             }
             return res;
