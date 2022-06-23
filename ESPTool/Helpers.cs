@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using zlib;
 
@@ -60,7 +59,7 @@ namespace ESPTool
             return result;
         }
 
-        
+
         //https://stackoverflow.com/questions/1014005/how-to-populate-instantiate-a-c-sharp-array-with-a-single-value
         public static void Populate<T>(this T[] arr, T value)
         {
