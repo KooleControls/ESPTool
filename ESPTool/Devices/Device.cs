@@ -26,16 +26,16 @@ namespace ESPTool.Devices
             Loader = dev.Loader;
         }
 
-        public async Task<Result> OpenSerial(string name, int baud)
+        public Task<Result> OpenSerial(string name, int baud)
         {
             Loader.Com.OpenSerial(name, baud);
-            return Result.OK;
+            return Task.FromResult(Result.OK);
         }
 
-        public async Task<Result> CloseSerial()
+        public Task<Result> CloseSerial()
         {
             Loader.Com.CloseSerial();
-            return Result.OK;
+            return Task.FromResult(Result.OK);
         }
 
         public async Task<Result> EnterBootloader(CancellationToken ct = default)
@@ -52,7 +52,7 @@ namespace ESPTool.Devices
         {
             Result res = Result.UnknownError;
             bool done = false;
-        
+
             int try_no = 0;
             while (!done && try_no < 100)
             {
@@ -105,29 +105,29 @@ namespace ESPTool.Devices
             return result;
         }
 
-        public virtual async Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
+        public virtual Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
         {
-            return Result.UnsupportedByLoader;
+            return Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual async Task<Result> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
+        public virtual Task<Result> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
-            return Result.UnsupportedByLoader;
+            return Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual async Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
+        public virtual Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
-            return Result.UnsupportedByLoader;
+            return Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual async Task<Result> StartStubloader(CancellationToken ct = default)
+        public virtual Task<Result> StartStubloader(CancellationToken ct = default)
         {
-            return Result.UnsupportedByLoader;
+            return Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual async Task<Result> EraseFlash(CancellationToken ct = default)
+        public virtual Task<Result> EraseFlash(CancellationToken ct = default)
         {
-            return Result.UnsupportedByLoader;
+            return Task.FromResult(Result.UnsupportedByLoader);
         }
 
 

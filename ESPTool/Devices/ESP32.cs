@@ -22,7 +22,7 @@ namespace ESPTool.Devices
 
         }
 
-        public override async Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
         {
             Result result = Result.OK;
             foreach (Segment di in firmware.Segments)
@@ -128,7 +128,7 @@ namespace ESPTool.Devices
         }
 
         //3550
-        public override async Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default(CancellationToken), IProgress<float> progress = default)
+        public override async Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
             Result result = Result.OK;
             int written = 0;
@@ -209,7 +209,7 @@ namespace ESPTool.Devices
         }
         
 
-        public override async Task<Result> StartStubloader(CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> StartStubloader(CancellationToken ct = default)
         {
             FirmwareImage stub = StubLoaders.ESP32;
 
@@ -227,7 +227,7 @@ namespace ESPTool.Devices
             return result;
         }
 
-        public override async Task<Result> EraseFlash(CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> EraseFlash(CancellationToken ct = default)
         {
             Result result = await Loader.ERASE_FLASH(ct);
             return result;
