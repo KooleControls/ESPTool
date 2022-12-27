@@ -16,7 +16,7 @@ namespace ESPTool.Loaders
 
         }
 
-        public override async Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default)
         {
             RequestCMD request = new RequestCMD(0x0f, false, Helpers.Concat(
                 BitConverter.GetBytes(baud),
@@ -25,7 +25,7 @@ namespace ESPTool.Loaders
         }
 
         //Note that the ESP32 ROM loader returns the md5sum as 32 hex encoded ASCII bytes, whereas the software loader returns the md5sum as 16 raw data bytes of MD5 followed by 2 status bytes.
-        public override async Task<Result<byte[]>> SPI_FLASH_MD5(UInt32 address, UInt32 size, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result<byte[]>> SPI_FLASH_MD5(UInt32 address, UInt32 size, CancellationToken ct = default)
         {
             RequestCMD request = new RequestCMD(0x13, false, Helpers.Concat(
                 BitConverter.GetBytes(address),
@@ -41,7 +41,7 @@ namespace ESPTool.Loaders
             return ToResult(reply, reply.Payload.SubArray(0, 16));
         }
 
-        public override async Task<Result> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default)
         {
             RequestCMD request = new RequestCMD(0x10, false, Helpers.Concat(
                 BitConverter.GetBytes(size),        //stub expects number of bytes here, manages erasing internally. ROM expects rounded up to erase block size
@@ -52,7 +52,7 @@ namespace ESPTool.Loaders
             return ToResult(await DoFrame(request, ct));
         }
 
-        public override async Task<Result> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default)
         {
             //ROM code writes block to flash before ACKing
             //Stub ACKs when block is received, then writes to flash while receiving the block after it
@@ -72,7 +72,7 @@ namespace ESPTool.Loaders
         /// <param name="entryPoint"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public override async Task<Result> FLASH_DEFL_END(UInt32 executeFlags, UInt32 entryPoint, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> FLASH_DEFL_END(UInt32 executeFlags, UInt32 entryPoint, CancellationToken ct = default)
         {
             RequestCMD request = new RequestCMD(0x12, false, Helpers.Concat(
                 BitConverter.GetBytes(executeFlags),
@@ -80,7 +80,7 @@ namespace ESPTool.Loaders
             return ToResult(await DoFrame(request, ct));
         }
 
-        public override async Task<Result> ERASE_FLASH(CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> ERASE_FLASH(CancellationToken ct = default)
         {
             RequestCMD request = new RequestCMD(0xd0, false, new byte[0]);
             return ToResult(await DoFrame(request, ct));

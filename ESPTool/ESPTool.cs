@@ -29,7 +29,7 @@ namespace ESPTool
 
             Result result = Result.OK;
 
-            device.OpenSerial(com, 115200);
+            await device.OpenSerial(com, 115200);
             Logger.WriteLine($"Serialport {com} opened");
 
             result = await device.EnterBootloader(ct);

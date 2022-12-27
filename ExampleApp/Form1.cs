@@ -1,17 +1,9 @@
-﻿using ESPTool.Com;
-using ESPTool.Devices;
+﻿using ESPTool.Devices;
 using ESPTool.Firmware;
-using ESPTool.Loaders;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -31,7 +23,7 @@ namespace ExampleApp
             AddButton("Open com", async () =>
             {
                 richTextBox1.AppendText("Opening com\r\n");
-                dev.OpenSerial("COM56", 115200);
+                await dev.OpenSerial("COM56", 115200);
             });
 
             AddButton("Enter Bootloader", async () =>

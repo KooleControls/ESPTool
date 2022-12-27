@@ -12,7 +12,7 @@ namespace ESPTool.Loaders
         {
 
         }
-        public override async Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default(CancellationToken))
+        public override async Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default)
         {
             RequestCMD request = new RequestCMD(0x0f, false, Helpers.Concat(
                 BitConverter.GetBytes(baud),
