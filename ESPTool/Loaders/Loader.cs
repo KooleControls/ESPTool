@@ -110,33 +110,33 @@ namespace ESPTool.Loaders
         #region Supported by software loader and ESP32 ROM Loader
 
 
-        public virtual Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default)
+        public virtual async Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
-        public virtual Task<Result> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default)
-        {
-            return await Task.FromResult(Result.UnsupportedByLoader);
-        }
-
-        public virtual Task<Result> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default)
+        public virtual async Task<Result> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual Task<Result> FLASH_DEFL_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default)
+        public virtual async Task<Result> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual Task<Result<byte[]>> SPI_FLASH_MD5(UInt32 address, UInt32 size, CancellationToken ct = default)
+        public virtual async Task<Result> FLASH_DEFL_END(UInt32 execute, UInt32 entryPoint, CancellationToken ct = default)
+        {
+            return await Task.FromResult(Result.UnsupportedByLoader);
+        }
+
+        public virtual async Task<Result<byte[]>> SPI_FLASH_MD5(UInt32 address, UInt32 size, CancellationToken ct = default)
         {
             return await Task.FromResult(new Result<byte[]> { Success = false, Error = Errors.UnsupportedByLoader }); 
         }
         #endregion
 
         #region Supported by software loader only (ESP8266 & ESP32)
-        public virtual Task<Result> ERASE_FLASH(CancellationToken ct = default)
+        public virtual async Task<Result> ERASE_FLASH(CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }

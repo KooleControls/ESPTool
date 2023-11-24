@@ -26,13 +26,13 @@ namespace ESPTool.Devices
             Loader = dev.Loader;
         }
 
-        public Task<Result> OpenSerial(string name, int baud)
+        public async Task<Result> OpenSerial(string name, int baud)
         {
             Loader.Com.OpenSerial(name, baud);
             return await Task.FromResult(Result.OK);
         }
 
-        public Task<Result> CloseSerial()
+        public async Task<Result> CloseSerial()
         {
             Loader.Com.CloseSerial();
             return await Task.FromResult(Result.OK);
@@ -105,27 +105,27 @@ namespace ESPTool.Devices
             return result;
         }
 
-        public virtual Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
+        public virtual async Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual Task<Result> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
+        public virtual async Task<Result> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
+        public virtual async Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual Task<Result> StartStubloader(CancellationToken ct = default)
+        public virtual async Task<Result> StartStubloader(CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
-        public virtual Task<Result> EraseFlash(CancellationToken ct = default)
+        public virtual async Task<Result> EraseFlash(CancellationToken ct = default)
         {
             return await Task.FromResult(Result.UnsupportedByLoader);
         }
