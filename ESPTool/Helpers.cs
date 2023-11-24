@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
@@ -8,6 +10,19 @@ namespace ESPTool
 {
     public static class Helpers
     {
+        public static string ToMd5Hash(this byte[] bytes)
+        {
+            using MD5 md5 = new MD5CryptoServiceProvider();
+            var encodedBytes = md5.ComputeHash(bytes);
+            return BitConverter.ToString(encodedBytes).Replace("-", string.Empty);
+        }
+
+        public static string ToMd5Hash(this Stream s)
+        {
+            using MD5 md5 = new MD5CryptoServiceProvider();
+            var encodedBytes = md5.ComputeHash(s);
+            return BitConverter.ToString(encodedBytes).Replace("-", string.Empty);
+        }
 
         public static T[] SubArray<T>(this T[] data, int index, int length, T padding = default)
         {

@@ -19,12 +19,12 @@ jobs:
     - name: Set VERSION variable from tag
       run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
     - name: Build
-      run: dotnet build --configuration Release /p:Version=${VERSION}
+      run: dotnet build ESPTool --configuration Release /p:Version=${VERSION}
     - name: Test
-      run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+      run: dotnet test ESPTool --configuration Release /p:Version=${VERSION} --no-build
     - name: Pack
-      run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
+      run: dotnet pack ESPTool --configuration Release /p:Version=${VERSION} --no-build --output artifacts
     - name: Push
-      run: dotnet nuget push NuGet.Workflow.${VERSION}.nupkg --source https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json --api-key ${GITHUB_TOKEN}
+      run: dotnet nuget push artifacts/ESPTool.${VERSION}.nupkg --source https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json --api-key ${GITHUB_TOKEN}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
