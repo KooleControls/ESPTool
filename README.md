@@ -23,4 +23,6 @@ The library consists of 4 main components:
 - Communicator, The Communicator implements the slip framing protocol and the serial communication.
 
 
+## Info
+- https://docs.espressif.com/projects/esptool/en/latest/esp32/advanced-topics/serial-protocol.html
 

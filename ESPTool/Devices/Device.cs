@@ -29,13 +29,13 @@ namespace ESPTool.Devices
         public async Task<Result> OpenSerial(string name, int baud)
         {
             Loader.Com.OpenSerial(name, baud);
-            return Result.OK;
+            return await Task.FromResult(Result.OK);
         }
 
         public async Task<Result> CloseSerial()
         {
             Loader.Com.CloseSerial();
-            return Result.OK;
+            return await Task.FromResult(Result.OK);
         }
 
         public async Task<Result> EnterBootloader(CancellationToken ct = default)
@@ -107,27 +107,27 @@ namespace ESPTool.Devices
 
         public virtual async Task<Result> UploadToRAM(FirmwareImage firmware, bool execute, CancellationToken ct = default)
         {
-            return Result.UnsupportedByLoader;
+            return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
         public virtual async Task<Result> UploadToFLASH(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
-            return Result.UnsupportedByLoader;
+            return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
         public virtual async Task<Result> UploadToFLASHDeflated(FirmwareImage firmware, bool execute, CancellationToken ct = default, IProgress<float> progress = default)
         {
-            return Result.UnsupportedByLoader;
+            return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
         public virtual async Task<Result> StartStubloader(CancellationToken ct = default)
         {
-            return Result.UnsupportedByLoader;
+            return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
         public virtual async Task<Result> EraseFlash(CancellationToken ct = default)
         {
-            return Result.UnsupportedByLoader;
+            return await Task.FromResult(Result.UnsupportedByLoader);
         }
 
 

@@ -79,13 +79,13 @@ namespace ESPTool.Com
             uart.DtrEnable = true;
             uart.RtsEnable = false;
 
-            bool cancelled = ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determained by trial and error. 250ms didnt work. We could wait for the uart to say "waiting for download"
+            bool cancelled = ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determined by trial and error. 250ms didn't work. We could wait for the uart to say "waiting for download"
 
             //Release boot pin
             uart.DtrEnable = false;
             uart.RtsEnable = false;
 
-            return cancelled ? Result.TaskCanceled : Result.OK;
+            return await Task.FromResult(cancelled ? Result.TaskCanceled : Result.OK);
         }
 
         public async Task<Result> Reset(CancellationToken ct = default(CancellationToken))
@@ -100,7 +100,7 @@ namespace ESPTool.Com
             uart.DtrEnable = false;
             uart.RtsEnable = false;
 
-            return cancelled ? Result.TaskCanceled : Result.OK;
+            return await Task.FromResult(cancelled ? Result.TaskCanceled : Result.OK);
         }
 
         public void SendFrame(Frame frame)
