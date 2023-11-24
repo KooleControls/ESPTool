@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using zlib;
+using ICSharpCode.SharpZipLib.Zip.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace ESPTool
 {
@@ -86,11 +87,11 @@ namespace ESPTool
         {
             byte[] outdata;
             using (MemoryStream outMemoryStream = new MemoryStream())
-            using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream, zlibConst.Z_DEFAULT_COMPRESSION))
+            using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream))
             using (Stream inMemoryStream = new MemoryStream(data))
             {
                 CopyStream(inMemoryStream, outZStream);
-                outZStream.finish();
+                outZStream.Finish();
                 outdata = outMemoryStream.ToArray();
             }
             return outdata;
@@ -104,7 +105,7 @@ namespace ESPTool
             using (Stream inMemoryStream = new MemoryStream(data))
             {
                 CopyStream(inMemoryStream, outZStream);
-                outZStream.finish();
+                outZStream.Finish();
                 outdata = outMemoryStream.ToArray();
             }
             return outdata;
@@ -119,6 +120,13 @@ namespace ESPTool
                 output.Write(buffer, 0, len);
             }
             output.Flush();
+        }
+    }
+
+    public class ZOutputStream : DeflaterOutputStream
+    {
+        public ZOutputStream(Stream baseOutputStream) : base(baseOutputStream, new Deflater(Deflater.DEFAULT_COMPRESSION, false))
+        {
         }
     }
 }
