@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,8 @@ namespace ESPTool.Com
 
         public void ClearBuffer()
         {
-            uart.DiscardInBuffer();
+            if(uart.IsOpen)
+                uart.DiscardInBuffer();
             framing.ClearBuffer();
         }
 
@@ -45,6 +47,7 @@ namespace ESPTool.Com
                 uart.PortName = name;
                 uart.BaudRate = baud;
                 uart.Open();
+                framing.ClearBuffer();
             }
         }
 
@@ -58,6 +61,7 @@ namespace ESPTool.Com
             uart.Close();
             uart.BaudRate = baudrate;
             uart.Open();
+            framing.ClearBuffer();
         }
 
         public int GetBaud()
@@ -67,25 +71,25 @@ namespace ESPTool.Com
 
 
 
-
-
         public async Task<Result> EnterBootloader(CancellationToken ct = default)
         {
-            //Reset
-            uart.DtrEnable = false;
-            uart.RtsEnable = true;
+            // Taken from: https://github.com/espressif/esptool/blob/master/esptool/reset.py line 92 (function ClassicReset)
 
-            //Hold boot pin
+            // Ensure we start in the origional state
+            uart.DtrEnable = false;
+            uart.RtsEnable = false;
+            ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(50));
+
+            // Execute sequence
+            uart.RtsEnable = true;
+            ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(100));
             uart.DtrEnable = true;
             uart.RtsEnable = false;
-
-            bool cancelled = ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determined by trial and error. 250ms didn't work. We could wait for the uart to say "waiting for download"
-
-            //Release boot pin
+            ct.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(50));
             uart.DtrEnable = false;
-            uart.RtsEnable = false;
 
-            return await Task.FromResult(cancelled ? Result.TaskCanceled : Result.OK);
+
+            return await Task.FromResult(ct.IsCancellationRequested ? Result.TaskCanceled : Result.OK);
         }
 
         public async Task<Result> Reset(CancellationToken ct = default)
