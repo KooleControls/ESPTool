@@ -29,11 +29,14 @@ namespace ESPTool
 
             Result result = Result.OK;
 
+            // Resetting the device fixes the enter bootloader issue.
+            device = new Device();
+
             await device.OpenSerial(com, 115200);
             Logger.WriteLine($"Serialport {com} opened");
 
             result = await device.EnterBootloader(ct);
-            Logger.WriteLine( $"Bootloader started {(result.Success ? "sucsesfully" : $"failed, error = '{result.Error}'")}.");
+            Logger.WriteLine( $"Bootloader sequence {(result.Success ? "executed" : $"failed, error = '{result.Error}'")}.");
             if (!result.Success) return result;
 
             result = await device.Sync(ct);

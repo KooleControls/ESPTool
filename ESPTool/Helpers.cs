@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -100,16 +101,18 @@ namespace ESPTool
 
         public static byte[] Compress(byte[] data)
         {
-            byte[] outdata;
-            using (MemoryStream outMemoryStream = new MemoryStream())
-            using (ZOutputStream outZStream = new ZOutputStream(outMemoryStream))
-            using (Stream inMemoryStream = new MemoryStream(data))
+            // Compress using DeflateStream, but with no ZLIB headers
+            using (var outputStream = new MemoryStream())
             {
-                CopyStream(inMemoryStream, outZStream);
-                outZStream.Finish();
-                outdata = outMemoryStream.ToArray();
+                // Create DeflateStream with optimal compression level
+                using (var deflateStream = new DeflateStream(outputStream, CompressionLevel.Fastest, true))
+                {
+                    deflateStream.Write(data, 0, data.Length);
+                }
+
+                // Return the compressed data
+                return outputStream.ToArray();
             }
-            return outdata;
         }
 
         public static byte[] Decompress(byte[] data)
