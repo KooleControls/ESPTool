@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace ESPTool;
 
@@ -136,6 +137,13 @@ public class ESPOta
             _logger("AUTH required and not implemented");
             return false;
         }
+    }
+
+    public static string ToMd5Hash(this Stream s)
+    {
+        using MD5 md5 = new MD5CryptoServiceProvider();
+        var encodedBytes = md5.ComputeHash(s);
+        return BitConverter.ToString(encodedBytes).Replace("-", string.Empty);
     }
 }
 

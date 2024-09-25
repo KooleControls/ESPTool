@@ -2,7 +2,7 @@
 
 namespace ESPTool.Devices
 {
-    public enum ChipTypes : UInt32
+    public enum ChipTypes : uint
     {
         Unknown = 0,
         ESP8266 = 0xfff0c101,

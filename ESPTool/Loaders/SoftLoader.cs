@@ -1,8 +1,6 @@
 ﻿using ESPTool.CMD;
 using ESPTool.Com;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,110 +8,121 @@ namespace ESPTool.Loaders
 {
     public class SoftLoader : Loader
     {
-
-        public SoftLoader(Loader lod) : base(lod)
+        public SoftLoader(Communicator communicator) : base(communicator, new SoftLoaderCommandExecutor(communicator))
         {
-
-        }
-
-        public override async Task<Result> ChangeBaud(int baud, int oldBaud, CancellationToken ct = default)
-        {
-            RequestCMD request = new RequestCMD(0x0f, false, Helpers.Concat(
-                BitConverter.GetBytes(baud),
-                BitConverter.GetBytes(oldBaud)));
-            return ToResult(await DoFrame(request, ct));
-        }
-
-        //Note that the ESP32 ROM loader returns the md5sum as 32 hex encoded ASCII bytes, whereas the software loader returns the md5sum as 16 raw data bytes of MD5 followed by 2 status bytes.
-        public override async Task<Result<byte[]>> SPI_FLASH_MD5(UInt32 address, UInt32 size, CancellationToken ct = default)
-        {
-            RequestCMD request = new RequestCMD(0x13, false, Helpers.Concat(
-                BitConverter.GetBytes(address),
-                BitConverter.GetBytes(size),
-                BitConverter.GetBytes(0),
-                BitConverter.GetBytes(0)));
-
-            ReplyCMD reply = await DoFrame(request, ct);
-
-            if (!reply.Success)
-                return null;
-
-            return ToResult(reply, reply.Payload.SubArray(0, 16));
-        }
-
-        public override async Task<Result> FLASH_DEFL_BEGIN(UInt32 size, UInt32 blocks, UInt32 blockSize, UInt32 offset, CancellationToken ct = default)
-        {
-            RequestCMD request = new RequestCMD(0x10, false, Helpers.Concat(
-                BitConverter.GetBytes(size),        //stub expects number of bytes here, manages erasing internally. ROM expects rounded up to erase block size
-                BitConverter.GetBytes(blocks),      
-                BitConverter.GetBytes(blockSize),
-                BitConverter.GetBytes(offset))
-                );
-            return ToResult(await DoFrame(request, ct));
-        }
-
-        public override async Task<Result> FLASH_DEFL_DATA(byte[] blockData, UInt32 seq, CancellationToken ct = default)
-        {
-            //ROM code writes block to flash before ACKing
-            //Stub ACKs when block is received, then writes to flash while receiving the block after it
-            RequestCMD request = new RequestCMD(0x11, true, Helpers.Concat(
-                BitConverter.GetBytes(blockData.Length),
-                BitConverter.GetBytes(seq),
-                BitConverter.GetBytes(0),
-                BitConverter.GetBytes(0),
-                blockData));
-            return ToResult(await DoFrame(request, ct));
         }
 
         /// <summary>
-        /// 
+        /// Changes the baud rate for communication in the SoftLoader.
         /// </summary>
-        /// <param name="executeFlags">0 = reboot, 1 = run user code</param>
-        /// <param name="entryPoint"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public override async Task<Result> FLASH_DEFL_END(UInt32 executeFlags, UInt32 entryPoint, CancellationToken ct = default)
+        /// <param name="baud">The new baud rate to set.</param>
+        /// <param name="oldBaud">The current baud rate.</param>
+        /// <param name="token">Cancellation token for the operation.</param>
+        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the token.</exception>
+        public override async Task ChangeBaudAsync(int baud, int oldBaud, CancellationToken token)
         {
-            RequestCMD request = new RequestCMD(0x12, false, Helpers.Concat(
-                BitConverter.GetBytes(executeFlags),
-                BitConverter.GetBytes(entryPoint)));
-            return ToResult(await DoFrame(request, ct));
+            var request = new RequestCommandBuilder()
+                .WithCommand(0x0F)
+                .AppendPayload(BitConverter.GetBytes(baud))
+                .AppendPayload(BitConverter.GetBytes(oldBaud))
+                .Build();
+
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to change baud rate.");
         }
 
-        public override async Task<Result> ERASE_FLASH(CancellationToken ct = default)
+        /// <summary>
+        /// Calculates and verifies the MD5 checksum of a given flash region.
+        /// </summary>
+        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the token.</exception>
+        public async Task<byte[]> SPI_FLASH_MD5(uint address, uint size, CancellationToken token)
         {
-            RequestCMD request = new RequestCMD(0xd0, false, new byte[0]);
-            return ToResult(await DoFrame(request, ct));
+            var request = new RequestCommandBuilder()
+                .WithCommand(0x13)
+                .AppendPayload(BitConverter.GetBytes(address))
+                .AppendPayload(BitConverter.GetBytes(size))
+                .AppendPayload(BitConverter.GetBytes(0))
+                .AppendPayload(BitConverter.GetBytes(0))
+                .Build();
+
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to compute MD5 checksum.");
+
+            return response.Payload.Take(16).ToArray(); // Return the MD5 checksum (first 16 bytes)
         }
 
-
-        protected override ReplyCMD ToCommand(Frame frame)
+        /// <summary>
+        /// Begins the flash process using compressed data.
+        /// </summary>
+        public async Task FlashDeflBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
         {
-            ReplyCMD cmd = new ReplyCMD();
-            try
-            {
-                cmd.Direction = frame.Data[0];
-                cmd.Command = frame.Data[1];
-                cmd.Size = BitConverter.ToUInt16(frame.Data, 2);
-                cmd.Value = BitConverter.ToUInt32(frame.Data, 4);
-                cmd.Payload = frame.Data.SubArray(8);
+            var request = new RequestCommandBuilder()
+                .WithCommand(0x10)
+                .AppendPayload(BitConverter.GetBytes(size))
+                .AppendPayload(BitConverter.GetBytes(blocks))
+                .AppendPayload(BitConverter.GetBytes(blockSize))
+                .AppendPayload(BitConverter.GetBytes(offset))
+                .Build();
 
-                //These 2 fields are switched around when compared to the documentation.
-                cmd.Success = cmd.Payload[cmd.Size - 1] == 0;
-                cmd.Error = ((SoftLoaderErrors)cmd.Payload[cmd.Size - 2]).ToGlobalError();
-
-                if (cmd.Error != Errors.NoError)
-                {
-                    cmd.Success = false;
-                }               
-            }
-            catch
-            {
-                cmd.Success = false;
-            }
-            return cmd;
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to begin flash with compressed data.");
         }
 
+        /// <summary>
+        /// Sends compressed flash data.
+        /// </summary>
+        public async Task FlashDeflDataAsync(byte[] blockData, uint seq, CancellationToken token)
+        {
+            var request = new RequestCommandBuilder()
+                .WithCommand(0x11)
+                .RequiresChecksum()
+                .AppendPayload(BitConverter.GetBytes(blockData.Length))
+                .AppendPayload(BitConverter.GetBytes(seq))
+                .AppendPayload(BitConverter.GetBytes(0))
+                .AppendPayload(BitConverter.GetBytes(0))
+                .AppendPayload(blockData)
+                .Build();
+
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to send compressed flash data.");
+        }
+
+        /// <summary>
+        /// Ends the flash process using compressed data.
+        /// </summary>
+        public async Task FlashDeflEndAsync(uint executeFlags, uint entryPoint, CancellationToken token)
+        {
+            var request = new RequestCommandBuilder()
+                .WithCommand(0x12)
+                .AppendPayload(BitConverter.GetBytes(executeFlags))
+                .AppendPayload(BitConverter.GetBytes(entryPoint))
+                .Build();
+
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to end flash with compressed data.");
+        }
+
+        /// <summary>
+        /// Erases the entire flash memory.
+        /// </summary>
+        public async Task EraseFlashAsync(CancellationToken token)
+        {
+            var request = new RequestCommandBuilder()
+                .WithCommand(0xD0)
+                .Build();
+
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to erase flash memory.");
+        }
     }
-}
 
+
+
+
+}
