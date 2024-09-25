@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ESPTool.CMD
+namespace ESPTool.Commands
 {
     public class RequestCommand
     {
@@ -13,6 +13,6 @@ namespace ESPTool.CMD
         public bool ChecksumRequired { get; set; }
         public byte[] Payload { get; set; } = new byte[0];
     }
-    
+
 
 }

@@ -1,6 +1,6 @@
-﻿using ESPTool.Com;
+﻿using ESPTool.Communication;
 
-namespace ESPTool.CMD
+namespace ESPTool.Commands
 {
     public class CommandExecutor
     {
@@ -28,7 +28,7 @@ namespace ESPTool.CMD
                 await _communicator.WriteFrameAsync(requestFrame, token);
 
                 // Read the response frame
-                Frame responseFrame = await _communicator.ReadFrameAsync(token);
+                Frame responseFrame = await _communicator.ReadFrameAsync(token) ?? throw new Exception("No frame received");
 
                 // Convert the response frame back to a ResponseCommand
                 return FrameToResponse(responseFrame);
@@ -71,9 +71,9 @@ namespace ESPTool.CMD
                 response.Command = frame.Data[1];
                 response.Size = BitConverter.ToUInt16(frame.Data, 2);
                 response.Value = BitConverter.ToUInt32(frame.Data, 4);
-                response.Payload = frame.Data.SubArray(8);
+                response.Payload = frame.Data.Skip(8).ToArray();
                 response.Success = response.Payload[response.Size - 4] == 0;
-                response.Error = ((RomLoaderErrors)response.Payload[response.Size - 3]).ToGlobalError();
+                response.Error = ((RomLoaderErrors)response.Payload[response.Size - 3]).ToResponseError();
             }
             catch
             {

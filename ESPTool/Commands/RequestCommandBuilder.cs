@@ -1,4 +1,4 @@
-﻿namespace ESPTool.CMD
+﻿namespace ESPTool.Commands
 {
     public class RequestCommandBuilder
     {
@@ -36,10 +36,6 @@
         public RequestCommandBuilder RequiresChecksum(bool checksumRequired = true)
         {
             _request.ChecksumRequired = checksumRequired;
-            if (checksumRequired)
-            {
-                CalculateChecksum();
-            }
             return this;
         }
 
@@ -58,6 +54,10 @@
         /// </summary>
         public RequestCommand Build()
         {
+            if (_request.ChecksumRequired)
+            {
+                CalculateChecksum();
+            }
             return _request;
         }
 
@@ -68,7 +68,7 @@
         {
             _request.Checksum = 0xEF;
 
-            for (int i = 0; i < _request.Payload.Length; i++)
+            for (int i = 16; i < _request.Payload.Length; i++)
             {
                 _request.Checksum ^= _request.Payload[i];
             }

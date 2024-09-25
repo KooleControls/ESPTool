@@ -1,4 +1,4 @@
-﻿namespace ESPTool
+﻿namespace ESPTool.Commands
 {
     public enum RomLoaderErrors
     {

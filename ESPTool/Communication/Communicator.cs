@@ -1,10 +1,10 @@
-﻿using ESPTool.Com;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESPTool.Com
+namespace ESPTool.Communication
 {
     public class Communicator : IDisposable
     {
@@ -14,7 +14,7 @@ namespace ESPTool.Com
         public Communicator()
         {
             _serialPort = new SerialPort();
-            _slipFraming = new SlipFraming(_serialPort.BaseStream);
+            _slipFraming = new SlipFraming(_serialPort);
         }
 
         /// <summary>
@@ -114,18 +114,22 @@ namespace ESPTool.Com
         {
             try
             {
-                // Ensure we start in the original state
-                _serialPort.DtrEnable = false;
-                _serialPort.RtsEnable = false;
-                await Task.Delay(50, token);  // Replaces WaitOne
 
-                // Execute sequence
+                _serialPort.DtrEnable = false;
                 _serialPort.RtsEnable = true;
-                await Task.Delay(100, token);  // Replaces WaitOne
+
+
+                //Hold boot pin
+
+
                 _serialPort.DtrEnable = true;
                 _serialPort.RtsEnable = false;
-                await Task.Delay(50, token);  // Replaces WaitOne
+
+                bool cancelled = token.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determined by trial and error. 250ms didn't work. We could wait for the uart to say "waiting for download"
+
+                //Release boot pin
                 _serialPort.DtrEnable = false;
+                _serialPort.RtsEnable = false;
 
                 token.ThrowIfCancellationRequested();
             }

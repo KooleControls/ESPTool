@@ -1,5 +1,5 @@
-﻿using ESPTool.CMD;
-using ESPTool.Com;
+﻿using ESPTool.Commands;
+using ESPTool.Communication;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +19,7 @@ namespace ESPTool.Loaders
         /// <param name="oldBaud">The current baud rate.</param>
         /// <param name="token">Cancellation token for the operation.</param>
         /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the token.</exception>
-        public override async Task ChangeBaudAsync(int baud, int oldBaud, CancellationToken token)
+        public async Task ChangeBaudAsync(int baud, int oldBaud, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x0F)

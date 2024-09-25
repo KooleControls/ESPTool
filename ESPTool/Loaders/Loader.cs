@@ -1,5 +1,6 @@
-﻿using ESPTool.CMD;
-using ESPTool.Com;
+﻿using ESPTool.Commands;
+using ESPTool.Communication;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,8 +41,8 @@ namespace ESPTool.Loaders
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("FlashBegin failed");
+            if (response.Success != true)
+                throw new Exception($"FlashBegin failed {response.Error}");
         }
 
         /// <summary>
@@ -60,8 +61,8 @@ namespace ESPTool.Loaders
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("FlashData failed");
+            if (response.Success != true)
+                throw new Exception($"FlashData failed {response.Error}");
         }
 
         /// <summary>
@@ -76,8 +77,8 @@ namespace ESPTool.Loaders
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("FlashEnd failed");
+            if (response.Success != true)
+                throw new Exception($"FlashEnd failed {response.Error}");
         }
 
         /// <summary>
@@ -94,8 +95,8 @@ namespace ESPTool.Loaders
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("MemBegin failed");
+            if (response.Success != true)
+                throw new Exception($"MemBegin failed {response.Error}");
         }
 
         /// <summary>
@@ -110,8 +111,8 @@ namespace ESPTool.Loaders
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("MemEnd failed");
+            if (response.Success != true)
+                throw new Exception($"MemEnd failed {response.Error}");
         }
 
         /// <summary>
@@ -130,8 +131,8 @@ namespace ESPTool.Loaders
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("MemData failed");
+            if (response.Success != true)
+                throw new Exception($"MemData failed {response.Error}");
         }
 
         /// <summary>
@@ -141,12 +142,12 @@ namespace ESPTool.Loaders
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x08)
-                .AppendPayload(new byte[] { 0x07, 0x07, 0x12, 0x20, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 })
+                .AppendPayload(new byte[] { 0x07, 0x07, 0x12, 0x20, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 })
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("Sync failed");
+            if (response.Success != true)
+                throw new Exception($"Synchronisation failed {response.Error}");
         }
 
         public virtual async Task<UInt32> ReadRegisterAsync(UInt32 address, CancellationToken token)
@@ -157,23 +158,11 @@ namespace ESPTool.Loaders
                .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response?.Success != true)
-                throw new Exception("Sync failed");
+            if (response.Success != true)
+                throw new Exception($"Reading register failed {response.Error}");
 
             return response.Value;
         }
-        #endregion
-
-        #region Supported by software loader and ESP32 ROM Loader
-
-        /// <summary>
-        /// Changes the baud rate for communication.
-        /// </summary>
-        public virtual async Task ChangeBaudAsync(int baud, int oldBaud, CancellationToken token)
-        {
-            throw new NotSupportedException("Changing baud rate is not supported by this loader.");
-        }
-
         #endregion
 
         #region Misc

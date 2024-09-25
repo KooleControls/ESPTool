@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESPTool.Com
+namespace ESPTool.Communication
 {
     public class SlipFraming
     {
@@ -14,11 +15,13 @@ namespace ESPTool.Com
         private const byte EscapeFrameDelimiter = 0xDC;
         private const byte EscapeEscapeByte = 0xDD;
 
-        private readonly Stream _stream;
+        private readonly SerialPort _serialPort;
+        private readonly List<byte> _frameBuffer;
 
-        public SlipFraming(Stream stream)
+        public SlipFraming(SerialPort serialPort)
         {
-            _stream = stream;
+            _serialPort = serialPort;
+            _frameBuffer = new List<byte>();
         }
 
         /// <summary>
@@ -32,8 +35,8 @@ namespace ESPTool.Com
         public async Task WriteFrameAsync(Frame frame, CancellationToken token)
         {
             byte[] encodedFrame = Encode(frame);
-            await _stream.WriteAsync(encodedFrame, 0, encodedFrame.Length, token);
-            await _stream.FlushAsync(token); // Ensure all data is sent
+            await _serialPort.BaseStream.WriteAsync(encodedFrame, 0, encodedFrame.Length, token);
+            await _serialPort.BaseStream.FlushAsync(token); // Ensure all data is sent
         }
 
         /// <summary>
@@ -51,13 +54,14 @@ namespace ESPTool.Com
 
             while (true)
             {
-                byte[] readBuffer = new byte[1];
-                int bytesRead = await _stream.ReadAsync(readBuffer, 0, readBuffer.Length, token);
+                // Wait for data
+                while (_serialPort.BytesToRead == 0)
+                {
+                    // Prevent busy waiting
+                    await Task.Delay(10, token);
+                }
 
-                if (bytesRead == 0)
-                    return null; // End of stream
-
-                byte currentByte = readBuffer[0];
+                byte currentByte = (byte)_serialPort.ReadByte();
 
                 if (currentByte == FrameDelimiter)
                 {

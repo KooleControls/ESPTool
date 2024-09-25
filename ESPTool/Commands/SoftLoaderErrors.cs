@@ -1,4 +1,4 @@
-﻿namespace ESPTool
+﻿namespace ESPTool.Commands
 {
     //https://github.com/espressif/esptool/blob/master/flasher_stub/include/stub_flasher.h#L95
     public enum SoftLoaderErrors

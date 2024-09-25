@@ -1,7 +1,7 @@
-﻿namespace ESPTool.Com
+﻿namespace ESPTool.Communication
 {
     public class Frame
-    { 
+    {
         public byte[] Data { get; set; }
 
         public Frame()
