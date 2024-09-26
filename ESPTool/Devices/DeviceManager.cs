@@ -76,27 +76,32 @@ namespace ESPTool.Devices
                 token.ThrowIfCancellationRequested();
 
                 // Try to sync for 100ms.
-                using (CancellationTokenSource cts = new CancellationTokenSource())
-                {
-                    token.Register(() => cts.Cancel());
-                    cts.CancelAfter(1000); // Cancel after 1 second
+                using CancellationTokenSource cts = new CancellationTokenSource() ;
 
-                    try
-                    {
-                        _logger.LogInformation("Attempting to sync with bootloader (Attempt {TryNo})...", tryNo + 1);
-                        await _loader.SyncAsync(cts.Token);
-                        _logger.LogInformation("Bootloader sync successful on attempt {TryNo}.", tryNo + 1);
-                        return; // Sync succeeded
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        _logger.LogWarning("Sync attempt {TryNo} timed out.", tryNo + 1);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error occurred during bootloader sync on attempt {TryNo}.", tryNo + 1);
-                        throw;
-                    }
+                // Register the token and store the registration to dispose of it later
+                using CancellationTokenRegistration ctr = token.Register(() => cts.Cancel());
+                    
+                cts.CancelAfter(100); // Cancel after 100ms
+
+                try
+                {
+                    _logger.LogInformation("Attempting to sync with bootloader (Attempt {TryNo})...", tryNo + 1);
+                    await _loader.SyncAsync(cts.Token);
+                    _logger.LogInformation("Bootloader sync successful on attempt {TryNo}.", tryNo + 1);
+                    return; // Sync succeeded
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("Sync attempt {TryNo} timed out.", tryNo + 1);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred during bootloader sync on attempt {TryNo}.", tryNo + 1);
+                    throw;
+                }
+                finally
+                {
+                    ctr.Unregister();
                 }
             }
 

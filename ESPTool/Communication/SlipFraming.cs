@@ -70,7 +70,7 @@ namespace ESPTool.Communication
                 {
                     if (startFound)
                     {
-                        Debug.WriteLine($"EOF");
+                        //Debug.WriteLine($"EOF");
                         // End of the frame found, decode it
                         Frame? frame = Decode(buffer.ToArray());
                         if (frame?.Data?.Length == 0)
@@ -84,14 +84,14 @@ namespace ESPTool.Communication
                         // Start of the frame
                         startFound = true;
                         buffer.Clear();
-                        Debug.Write($"(RX) SOF ");
+                        //Debug.Write($"(RX) SOF ");
                     }
                 }
                 else if (startFound)
                 {
                     // Add byte to the buffer
                     buffer.Add(currentByte);
-                    Debug.Write($"{currentByte:X2} ");
+                    //Debug.Write($"{currentByte:X2} ");
                 }
             }
         }

@@ -114,24 +114,32 @@ namespace ESPTool.Communication
         {
             try
             {
-
+                // Taken from: https://github.com/espressif/esptool/blob/master/esptool/reset.py line 92 (function ClassicReset)
                 _serialPort.DtrEnable = false;
                 _serialPort.RtsEnable = true;
-
-
-                //Hold boot pin
-
-
+                await Task.Delay(100, token);
                 _serialPort.DtrEnable = true;
                 _serialPort.RtsEnable = false;
-
-                bool cancelled = token.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500)); //Determined by trial and error. 250ms didn't work. We could wait for the uart to say "waiting for download"
-
-                //Release boot pin
+                await Task.Delay(500, token);
                 _serialPort.DtrEnable = false;
-                _serialPort.RtsEnable = false;
 
                 token.ThrowIfCancellationRequested();
+
+                // // Taken from: https://github.com/espressif/esptool/blob/master/esptool/reset.py line 92 (function ClassicReset)
+                // 
+                // // Ensure we start in the origional state
+                // _serialPort.DtrEnable = false;
+                // _serialPort.RtsEnable = false;
+                // await Task.Delay(50, token);
+                // 
+                // // Execute sequence
+                // _serialPort.RtsEnable = true;
+                // await Task.Delay(100, token);
+                // _serialPort.DtrEnable = true;
+                // _serialPort.RtsEnable = false;
+                // await Task.Delay(50, token);
+                // 
+                // token.ThrowIfCancellationRequested();
             }
             catch (Exception ex)
             {
