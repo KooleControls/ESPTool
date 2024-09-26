@@ -4,6 +4,7 @@
 
 Currently, the library supports basic ESP32 operations like flashing and erasing firmware.
 
+(Outdated, todo, fix cicd, see [#](https://github.com/KooleControls/ESPTool/issues/5))
 [![NuGet version (ESPTool)](https://img.shields.io/nuget/v/ESPTool)](https://www.nuget.org/packages/ESPTool/)
 
 ## Key Concepts
