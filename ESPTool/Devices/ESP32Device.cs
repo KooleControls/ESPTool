@@ -105,7 +105,7 @@ namespace ESPTool.Devices
         /// <summary>
         /// Uploads uncompressed data to flash.
         /// </summary>
-        public async Task UploadToFlashAsync(Stream stream, UInt32 totalSize, uint offset, CancellationToken token = default, IProgress<float> progress = null)
+        public async Task UploadToFlashAsync(Stream stream, UInt32 totalSize, uint offset, bool execute, UInt32 entrypoint, CancellationToken token = default, IProgress<float> progress = null)
         {
             UInt32 blockSize = (UInt32)FLASH_WRITE_SIZE;
             UInt32 blocks = totalSize / blockSize;
@@ -150,21 +150,18 @@ namespace ESPTool.Devices
                 progress?.Report(uploadedSize / totalSize);
             }
 
-            _logger.LogInformation("Firmware upload to flash at offset 0x{Offset:X} completed.", offset);
-        }
-
-        public async Task UploadToFlashFinishAsync(bool execute, UInt32 entrypoint, CancellationToken token = default)
-        {
             if (_softLoader != null)
                 await _softLoader.FlashEndAsync((UInt32)(execute ? 0 : 1), entrypoint, token);
             else
                 await _loader.FlashEndAsync((UInt32)(execute ? 0 : 1), entrypoint, token);
+
+            _logger.LogInformation("Firmware upload to flash at offset 0x{Offset:X} completed.", offset);
         }
 
         /// <summary>
         /// Uploads compressed data to flash.
         /// </summary>
-        public async Task UploadCompressedToFlashAsync(Stream uncompressedStream, UInt32 uncompressedSize, uint offset, CancellationToken token = default, IProgress<float> progress = null)
+        public async Task UploadCompressedToFlashAsync(Stream uncompressedStream, UInt32 uncompressedSize, uint offset, bool execute, UInt32 entrypoint, CancellationToken token = default, IProgress<float> progress = null)
         {
             if (_softLoader == null)
             {
@@ -210,19 +207,11 @@ namespace ESPTool.Devices
                 progress?.Report(uploadedSize / compressedSize);
             }
 
+            await _softLoader.FlashDeflEndAsync((UInt32)(execute ? 0 : 1), entrypoint, token);
+
             _logger.LogInformation("Compressed firmware upload to flash at offset 0x{Offset:X} completed.", offset);
         }
 
-        public async Task UploadCompressedToFlashFinishAsync(bool execute, UInt32 entrypoint, CancellationToken token = default)
-        {
-            if (_softLoader != null)
-                await _softLoader.FlashDeflEndAsync((UInt32)(execute ? 0 : 1), entrypoint, token);
-            else
-            {
-                _logger.LogError("Softloader is not running. Call StartSoftloaderAsync first.");
-                throw new InvalidOperationException("Not supported by default loader, start the softloader first");
-            }
-        }
 
         /// <summary>
         /// Resets the device.

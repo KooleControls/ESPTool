@@ -7,9 +7,6 @@ namespace ESPTool.Devices
 
     public interface IDevice
     {
-        public Task EraseFlashAsync(CancellationToken token = default);
-        public Task UploadToFlashAsync(Stream stream, UInt32 size, uint offset, CancellationToken token = default, IProgress<float> progress = null);
-        public Task UploadCompressedToFlashAsync(Stream stream, UInt32 size, uint offset, CancellationToken token = default, IProgress<float> progress = null);
         public Task ResetDeviceAsync(CancellationToken token = default);
     }
 
