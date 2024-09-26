@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
@@ -16,12 +17,10 @@ namespace ESPTool.Communication
         private const byte EscapeEscapeByte = 0xDD;
 
         private readonly SerialPort _serialPort;
-        private readonly List<byte> _frameBuffer;
 
         public SlipFraming(SerialPort serialPort)
         {
             _serialPort = serialPort;
-            _frameBuffer = new List<byte>();
         }
 
         /// <summary>
@@ -35,6 +34,10 @@ namespace ESPTool.Communication
         public async Task WriteFrameAsync(Frame frame, CancellationToken token)
         {
             byte[] encodedFrame = Encode(frame);
+            //Debug.Write($"(TX) ");
+            //foreach(var b in encodedFrame)
+            //    Debug.Write($"{b:X2} ");
+            //Debug.WriteLine($"");
             await _serialPort.BaseStream.WriteAsync(encodedFrame, 0, encodedFrame.Length, token);
             await _serialPort.BaseStream.FlushAsync(token); // Ensure all data is sent
         }
@@ -67,20 +70,28 @@ namespace ESPTool.Communication
                 {
                     if (startFound)
                     {
+                        Debug.WriteLine($"EOF");
                         // End of the frame found, decode it
-                        return Decode(buffer.ToArray());
+                        Frame? frame = Decode(buffer.ToArray());
+                        if (frame?.Data?.Length == 0)
+                            throw new Exception("Empty frame");
+                        else
+                            return frame;
+
                     }
                     else
                     {
                         // Start of the frame
                         startFound = true;
                         buffer.Clear();
+                        Debug.Write($"(RX) SOF ");
                     }
                 }
                 else if (startFound)
                 {
                     // Add byte to the buffer
                     buffer.Add(currentByte);
+                    Debug.Write($"{currentByte:X2} ");
                 }
             }
         }

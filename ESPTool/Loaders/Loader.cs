@@ -81,6 +81,7 @@ namespace ESPTool.Loaders
                 throw new Exception($"FlashEnd failed {response.Error}");
         }
 
+
         /// <summary>
         /// Begins memory upload.
         /// </summary>
@@ -172,7 +173,7 @@ namespace ESPTool.Loaders
         /// </summary>
         public async Task WaitForOHAIAsync(CancellationToken token)
         {
-            Frame? frame = null;
+            Frame? frame = await _communicator.ReadFrameAsync(token);
 
             while (frame?.Data.SequenceEqual(OHAI) != true)
             {

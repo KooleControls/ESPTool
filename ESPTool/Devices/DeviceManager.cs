@@ -44,6 +44,8 @@ namespace ESPTool.Devices
             var chipType = await DetectChipTypeAsync(token);
             _logger.LogInformation("Detected chip type: {ChipType}", chipType);
 
+
+
             switch (chipType)
             {
                 case ChipTypes.ESP32:

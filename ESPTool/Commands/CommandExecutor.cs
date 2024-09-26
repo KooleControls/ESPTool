@@ -31,9 +31,18 @@ namespace ESPTool.Commands
                 Frame responseFrame = await _communicator.ReadFrameAsync(token) ?? throw new Exception("No frame received");
 
                 // Convert the response frame back to a ResponseCommand
-                return FrameToResponse(responseFrame);
+                var response = FrameToResponse(responseFrame);
+
+                // Check
+                if (response.Command != requestCommand.Command)
+                {
+                    throw new Exception("Response didnt match");
+                }
+                return response;
+
             }
-            catch (TaskCanceledException)
+
+            catch (OperationCanceledException)
             {
                 throw new OperationCanceledException("Frame operation was canceled.", token);
             }

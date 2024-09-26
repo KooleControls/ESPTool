@@ -33,11 +33,11 @@ namespace ESPTool.Flashers
             var segment2 = new MemoryStream(segmentData2);
             await UploadToRAMAsync(segment2, (uint)segment2.Length, segmentOffset2, blockSize, token);
 
-            // Start the softloader
-            await _loader.MemEndAsync(1, entryPoint, token);
+            // Start the softloader 0x400be5ac
+            await _loader.MemEndAsync(0, entryPoint, token);
 
             // Wait for OHAI signal
-            // await _loader.WaitForOHAIAsync(token);
+            await _loader.WaitForOHAIAsync(token);
         }
 
         /// <summary>
