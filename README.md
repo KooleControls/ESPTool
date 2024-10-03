@@ -2,12 +2,14 @@
 
 **ESPTool** is a C# library designed to interact with ESP32 devices for tasks such as flashing firmware, erasing flash memory, syncing with the bootloader, and managing device communications. This library provides a structured way to communicate with the ESP32 using serial communication and custom loaders.
 
-> **Looking for a GUI tool?** Check out the [ESPFlasher GUI tool on GitHub](https://github.com/KooleControls/ESPFlasher).
-
 Currently, the library supports basic ESP32 operations like flashing and erasing firmware.
 
 (Outdated, todo, fix cicd, see [#](https://github.com/KooleControls/ESPTool/issues/5))
 [![NuGet version (ESPTool)](https://img.shields.io/nuget/v/ESPTool)](https://www.nuget.org/packages/ESPTool/)
+
+
+
+> **Looking for a GUI tool?** Check out the [ESPFlasher GUI tool on GitHub](https://github.com/KooleControls/ESPFlasher).
 
 
 ## Key Concepts
