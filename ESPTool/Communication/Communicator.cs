@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ESPTool.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO.Ports;
 using System.Threading;
@@ -102,77 +103,14 @@ namespace ESPTool.Communication
         {
             return await _slipFraming.ReadFrameAsync(token);
         }
-
-        /// <summary>
-        /// Executes the bootloader entry sequence.
-        /// </summary>
-        /// <param name="token">Cancellation token to cancel the operation.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the cancellation token.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if an error occurs while entering the bootloader.</exception>
-        public async Task EnterBootloaderAsync(CancellationToken token)
+        
+        public async Task ExecutePinSequence(PinSequence sequence, CancellationToken token)
         {
-            try
+            foreach (var step in sequence.Steps)
             {
-                // Taken from: https://github.com/espressif/esptool/blob/master/esptool/reset.py line 92 (function ClassicReset)
-                _serialPort.DtrEnable = false;
-                _serialPort.RtsEnable = true;
-                await Task.Delay(100, token);
-                _serialPort.DtrEnable = true;
-                _serialPort.RtsEnable = false;
-                await Task.Delay(500, token);
-                _serialPort.DtrEnable = false;
-
-                token.ThrowIfCancellationRequested();
-
-                // // Taken from: https://github.com/espressif/esptool/blob/master/esptool/reset.py line 92 (function ClassicReset)
-                // 
-                // // Ensure we start in the origional state
-                // _serialPort.DtrEnable = false;
-                // _serialPort.RtsEnable = false;
-                // await Task.Delay(50, token);
-                // 
-                // // Execute sequence
-                // _serialPort.RtsEnable = true;
-                // await Task.Delay(100, token);
-                // _serialPort.DtrEnable = true;
-                // _serialPort.RtsEnable = false;
-                // await Task.Delay(50, token);
-                // 
-                // token.ThrowIfCancellationRequested();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to enter bootloader", ex);
-            }
-        }
-
-        /// <summary>
-        /// Resets the device by toggling the RTS and DTR pins.
-        /// </summary>
-        /// <param name="token">Cancellation token to cancel the operation.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the cancellation token.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if an error occurs while resetting the device.</exception>
-        public async Task ResetDeviceAsync(CancellationToken token)
-        {
-            try
-            {
-                // Reset
-                _serialPort.DtrEnable = false;
-                _serialPort.RtsEnable = true;
-
-                await Task.Delay(500, token);  // Replaces WaitOne
-
-                // Release reset pin
-                _serialPort.DtrEnable = false;
-                _serialPort.RtsEnable = false;
-
-                token.ThrowIfCancellationRequested();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to reset the device", ex);
+                _serialPort.DtrEnable = step.Dtr;
+                _serialPort.RtsEnable = step.Rts;
+                await Task.Delay(step.DelayMs, token);
             }
         }
 

@@ -1,14 +1,13 @@
 ﻿using ESPTool.Commands;
 using ESPTool.Communication;
 using ESPTool.Loaders.ESP32BootLoader;
-using ESPTool.Loaders.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ESPTool.Loaders.SoftLoader
 {
-    public class SoftLoader : ILoader, IBaudRateConfigurableLoader, IFlashLoader, IFlashDeflLoader, IMemLoader, IFlashEraseLoader
+    public class SoftLoader : ILoader
     {
         private readonly byte[] OHAI = { 0x4F, 0x48, 0x41, 0x49 };
         protected readonly Communicator _communicator;
@@ -241,21 +240,6 @@ namespace ESPTool.Loaders.SoftLoader
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
             if (response.Success != true)
                 throw new Exception($"MemData failed {response.Error}");
-        }
-
-        /// <summary>
-        /// Synchronizes with the loader.
-        /// </summary>
-        public virtual async Task SyncAsync(CancellationToken token)
-        {
-            var request = new RequestCommandBuilder()
-                .WithCommand(0x08)
-                .AppendPayload(new byte[] { 0x07, 0x07, 0x12, 0x20, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 })
-                .Build();
-
-            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response.Success != true)
-                throw new Exception($"Synchronisation failed {response.Error}");
         }
 
         public virtual async Task<UInt32> ReadRegisterAsync(UInt32 address, CancellationToken token)

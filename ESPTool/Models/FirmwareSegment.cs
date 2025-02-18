@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ESPTool.Firmware
+namespace ESPTool.Models
 {
 
     public class FirmwareSegment

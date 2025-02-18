@@ -1,15 +1,13 @@
 ﻿using ESPTool.Commands;
 using ESPTool.Communication;
-using ESPTool.Loaders.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ESPTool.Loaders.ESP32BootLoader
 {
-    public class ESP32BootLoader : ILoader, IBaudRateConfigurableLoader, IFlashLoader, IMemLoader
+    public class ESP32BootLoader : ILoader
     {
-        private readonly byte[] OHAI = { 0x4F, 0x48, 0x41, 0x49 };
         private readonly Communicator _communicator;
         private readonly BootLoaderCommandExecutor _commandExecutor;
 
@@ -19,8 +17,6 @@ namespace ESPTool.Loaders.ESP32BootLoader
             _commandExecutor = new BootLoaderCommandExecutor(communicator);
         }
 
-
-        #region Supported by software loader and ROM loaders
 
         /// <summary>
         /// Begins the flash process.
@@ -159,24 +155,6 @@ namespace ESPTool.Loaders.ESP32BootLoader
 
             return response.Value;
         }
-        #endregion
-
-        #region Misc
-
-        /// <summary>
-        /// Waits for the OHAI message.
-        /// </summary>
-        public async Task WaitForOHAIAsync(CancellationToken token)
-        {
-            Frame? frame = await _communicator.ReadFrameAsync(token);
-
-            while (frame?.Data.SequenceEqual(OHAI) != true)
-            {
-                frame = await _communicator.ReadFrameAsync(token);
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Changes the baud rate for communication in ESP32.
@@ -196,5 +174,61 @@ namespace ESPTool.Loaders.ESP32BootLoader
             if (response?.Success != true)
                 throw new InvalidOperationException("Failed to change baud rate.");
         }
+
+        public Task EraseFlashAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task FlashDeflBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task FlashDeflDataAsync(byte[] blockData, uint seq, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task FlashDeflEndAsync(uint executeFlags, uint entryPoint, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Synchronizes with the bootloader.
+        /// </summary>
+        public async Task<bool> Synchronize(CancellationToken token)
+        {
+            for (int tryNo = 0; tryNo < 100; tryNo++)
+            {
+                token.ThrowIfCancellationRequested();
+
+                // Try to sync for 100ms.
+                using CancellationTokenSource cts = new CancellationTokenSource();
+
+                // Register the token and store the registration to dispose of it later
+                using CancellationTokenRegistration ctr = token.Register(() => cts.Cancel());
+
+                cts.CancelAfter(100); // Cancel after 100ms
+
+                try
+                {
+                    await SyncAsync(cts.Token);
+                    return true;
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                finally
+                {
+                    ctr.Unregister();
+                }
+            }
+
+            return false;
+        }
+
     }
 }
+

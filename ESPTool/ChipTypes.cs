@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ESPTool.Devices
+namespace ESPTool
 {
     public enum ChipTypes : uint
     {

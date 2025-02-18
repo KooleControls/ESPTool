@@ -18,15 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Config\BootloaderSequences.json">
-	    <SubType>Component</SubType>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Config\Devices.json">
-	    <SubType>Component</SubType>
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Config\Softloaders.json">
+	  <None Update="AppConfig.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
