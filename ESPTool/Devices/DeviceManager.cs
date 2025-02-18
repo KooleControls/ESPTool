@@ -51,7 +51,11 @@ namespace ESPTool.Devices
                 case ChipTypes.ESP32:
                     _logger.LogInformation("Initializing ESP32 device...");
                     return new ESP32Device(_communicator, _loggerFactory);
-
+                
+                case ChipTypes.ESP32S3:
+                    _logger.LogInformationbn("Initializing ESP32S3 device...");
+                    return new ES32S3Device(_communicator, _loggerFactory);
+                    
                 default:
                     _logger.LogError("Chip type {ChipType} not implemented.", chipType);
                     throw new NotImplementedException($"Chip type {chipType} not implemented");
