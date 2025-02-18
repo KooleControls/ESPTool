@@ -1,5 +1,5 @@
 ﻿using ESPTool.Communication;
-using ESPTool.Flashers;
+using ESPTool.Firmware;
 using ESPTool.Loaders;
 using ESPTool.Utils;
 using Microsoft.Extensions.Logging;
@@ -34,7 +34,7 @@ namespace ESPTool.Devices
             {
                 _logger.LogInformation("Starting softloader...");
 
-                SoftLoaderFlasher flasher = new SoftLoaderFlasher(_loader);
+                RAMFlasher flasher = new RAMFlasher(_loader);
                 await flasher.FlashSoftLoaderAsync(ESP_RAM_BLOCK, token);
 
                 // Instantiate the softloader
