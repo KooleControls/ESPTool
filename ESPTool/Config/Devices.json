@@ -1,0 +1,13 @@
+﻿[
+  {
+    "Device": "ESP32",
+    "RamBlockSize": 6144,
+    "FlashBlockSize": 1024
+  },
+  {
+    "Device": "ESP32S2",
+    "RamBlockSize": 6144,
+    "FlashBlockSize": 2000
+  }
+]
+

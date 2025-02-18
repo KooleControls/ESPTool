@@ -12,6 +12,6 @@ namespace ESPTool.Commands
         public uint Value { get; set; }
         public virtual byte[] Payload { get; set; } = new byte[0];
         public bool Success { get; set; }
-        public ResponseErrors Error { get; set; }
+        public ResponseCommandStatus Error { get; set; }
     }
 }

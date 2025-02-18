@@ -1,7 +1,7 @@
-﻿namespace ESPTool.Commands
+﻿namespace ESPTool.Loaders.SoftLoader
 {
     //https://github.com/espressif/esptool/blob/master/flasher_stub/include/stub_flasher.h#L95
-    public enum SoftLoaderErrors
+    public enum SoftLoaderResponseStatus
     {
         ESP_OK = 0,
         ESP_BAD_DATA_LEN = 0xC0,

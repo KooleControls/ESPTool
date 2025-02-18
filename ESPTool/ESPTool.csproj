@@ -18,8 +18,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Resources\ESP32S2_Softloader.json">
+	  <None Update="Config\BootloaderSequences.json">
 	    <SubType>Component</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\Devices.json">
+	    <SubType>Component</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Config\Softloaders.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
 </Project>

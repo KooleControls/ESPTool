@@ -1,6 +1,6 @@
-﻿namespace ESPTool.Commands
+﻿namespace ESPTool.Loaders.ESP32BootLoader
 {
-    public enum RomLoaderErrors
+    public enum BootLoaderResponseStatus
     {
         Invalid = 0x05,
         Failed = 0x06,

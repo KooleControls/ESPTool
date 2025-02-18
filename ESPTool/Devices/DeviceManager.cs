@@ -7,7 +7,7 @@ namespace ESPTool.Devices
 {
     public class DeviceManager
     {
-        private readonly Loader _loader;
+        private readonly ILoader _loader;
         private readonly Communicator _communicator;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<DeviceManager> _logger;

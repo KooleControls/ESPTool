@@ -1,12 +1,14 @@
-﻿using ESPTool.Communication;
+﻿using ESPTool.Commands;
+using ESPTool.Communication;
 
-namespace ESPTool.Commands
+namespace ESPTool.Loaders.SoftLoader
 {
-    public class CommandExecutor
+
+    public class SoftLoaderCommandExecutor
     {
         protected readonly Communicator _communicator;
 
-        public CommandExecutor(Communicator communicator)
+        public SoftLoaderCommandExecutor(Communicator communicator)
         {
             _communicator = communicator;
         }
@@ -52,26 +54,22 @@ namespace ESPTool.Commands
             }
         }
 
-        /// <summary>
-        /// Converts a RequestCommand object into a Frame object.
-        /// </summary>
-        protected virtual Frame RequestToFrame(RequestCommand command)
+        private static Frame RequestToFrame(RequestCommand command)
         {
             List<byte> raw = new List<byte>
-                {
-                    command.Direction,
-                    command.Command
-                };
+            {
+                command.Direction,
+                command.Command
+            };
             raw.AddRange(BitConverter.GetBytes(command.Size));
             raw.AddRange(BitConverter.GetBytes(command.Checksum));
             raw.AddRange(command.Payload);
             return new Frame(raw.ToArray());
         }
 
-        /// <summary>
-        /// Converts a Frame object into a ResponseCommand object.
-        /// </summary>
-        protected virtual ResponseCommand FrameToResponse(Frame frame)
+
+
+        private static ResponseCommand FrameToResponse(Frame frame)
         {
             ResponseCommand response = new ResponseCommand();
             try
@@ -81,14 +79,42 @@ namespace ESPTool.Commands
                 response.Size = BitConverter.ToUInt16(frame.Data, 2);
                 response.Value = BitConverter.ToUInt32(frame.Data, 4);
                 response.Payload = frame.Data.Skip(8).ToArray();
-                response.Success = response.Payload[response.Size - 4] == 0;
-                response.Error = ((RomLoaderErrors)response.Payload[response.Size - 3]).ToResponseError();
+
+                //These 2 fields are switched around when compared to the documentation.
+                response.Success = response.Payload[response.Size - 1] == 0;
+                SoftLoaderResponseStatus status = (SoftLoaderResponseStatus)response.Payload[response.Size - 2];
+                response.Error = GeneralizeResponseStatus(status);
+
+                if (response.Error != ResponseCommandStatus.NoError)
+                {
+                    response.Success = false;
+                }
             }
             catch
             {
                 response.Success = false;
             }
             return response;
+        }
+
+        private static ResponseCommandStatus GeneralizeResponseStatus(SoftLoaderResponseStatus err)
+        {
+            return err switch
+            {
+                SoftLoaderResponseStatus.ESP_OK => ResponseCommandStatus.NoError,
+                SoftLoaderResponseStatus.ESP_BAD_DATA_LEN => ResponseCommandStatus.Invalid,
+                SoftLoaderResponseStatus.ESP_BAD_DATA_CHECKSUM => ResponseCommandStatus.InvalidCRC,
+                SoftLoaderResponseStatus.ESP_BAD_BLOCKSIZE => ResponseCommandStatus.BadBlockSize,
+                SoftLoaderResponseStatus.ESP_INVALID_COMMAND => ResponseCommandStatus.Failed,
+                SoftLoaderResponseStatus.ESP_FAILED_SPI_OP => ResponseCommandStatus.FailedSPIOP,
+                SoftLoaderResponseStatus.ESP_FAILED_SPI_UNLOCK => ResponseCommandStatus.FailedSPIUnlock,
+                SoftLoaderResponseStatus.ESP_NOT_IN_FLASH_MODE => ResponseCommandStatus.NotInFlashMode,
+                SoftLoaderResponseStatus.ESP_INFLATE_ERROR => ResponseCommandStatus.InflateError,
+                SoftLoaderResponseStatus.ESP_NOT_ENOUGH_DATA => ResponseCommandStatus.NotEnoughData,
+                SoftLoaderResponseStatus.ESP_TOO_MUCH_DATA => ResponseCommandStatus.TooMuchData,
+                SoftLoaderResponseStatus.ESP_CMD_NOT_IMPLEMENTED => ResponseCommandStatus.Failed,
+                _ => ResponseCommandStatus.Unknown,
+            };
         }
     }
 }

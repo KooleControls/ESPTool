@@ -1,6 +1,6 @@
 ﻿namespace ESPTool.Commands
 {
-    public enum ResponseErrors : byte
+    public enum ResponseCommandStatus : byte
     {
         NoError,
         Unknown,
