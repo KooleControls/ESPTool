@@ -44,7 +44,7 @@ namespace EspDotNet.Tools
             }
 
             // End memory transfer
-            uint execute = (uint)(_config.ExecuteAfterSending ? 1 : 0);
+            uint execute = (uint)(_config.ExecuteAfterSending ? 0 : 1);
             await SendEndAsync(execute, firmwareProvider.EntryPoint, token);
             Progress.Report(1);
         }
