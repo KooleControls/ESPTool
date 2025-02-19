@@ -1,4 +1,4 @@
-﻿namespace ESPTool.Tools
+﻿namespace EspDotNet.Tools.Firmware
 {
     public enum FirmwareUploadOptions
     {

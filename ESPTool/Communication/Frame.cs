@@ -1,4 +1,4 @@
-﻿namespace ESPTool.Communication
+﻿namespace EspDotNet.Communication
 {
     public class Frame
     {

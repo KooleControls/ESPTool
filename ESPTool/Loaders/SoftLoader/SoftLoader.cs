@@ -1,11 +1,11 @@
-﻿using ESPTool.Commands;
-using ESPTool.Communication;
-using ESPTool.Loaders.ESP32BootLoader;
+﻿using EspDotNet.Commands;
+using EspDotNet.Communication;
+using EspDotNet.Loaders;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESPTool.Loaders.SoftLoader
+namespace EspDotNet.Loaders.SoftLoader
 {
     public class SoftLoader : ILoader
     {
@@ -127,10 +127,10 @@ namespace ESPTool.Loaders.SoftLoader
             if (!response.Success)
                 throw new InvalidOperationException("Failed to erase flash memory.");
         }
-    
 
 
-    
+
+
         #region Supported by software loader and ROM loaders
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace ESPTool.Loaders.SoftLoader
                 throw new Exception($"MemData failed {response.Error}");
         }
 
-        public virtual async Task<UInt32> ReadRegisterAsync(UInt32 address, CancellationToken token)
+        public virtual async Task<uint> ReadRegisterAsync(uint address, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                .WithCommand(0x0a)

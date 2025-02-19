@@ -1,7 +1,7 @@
-﻿using ESPTool.Commands;
-using ESPTool.Communication;
+﻿using EspDotNet.Commands;
+using EspDotNet.Communication;
 
-namespace ESPTool.Loaders.SoftLoader
+namespace EspDotNet.Loaders.SoftLoader
 {
 
     public class SoftLoaderCommandExecutor

@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESPTool.Loaders
+namespace EspDotNet.Loaders
 {
     /// <summary>
     /// Base interface for all loaders.

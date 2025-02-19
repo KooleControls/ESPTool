@@ -1,4 +1,4 @@
-﻿namespace ESPTool.Loaders.ESP32BootLoader
+﻿namespace EspDotNet.Loaders.ESP32BootLoader
 {
     public enum BootLoaderResponseStatus
     {

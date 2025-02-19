@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ESPTool.Commands
+namespace EspDotNet.Commands
 {
     public partial class ResponseCommand
     {

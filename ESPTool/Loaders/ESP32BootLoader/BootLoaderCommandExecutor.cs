@@ -1,7 +1,7 @@
-﻿using ESPTool.Commands;
-using ESPTool.Communication;
+﻿using EspDotNet.Commands;
+using EspDotNet.Communication;
 
-namespace ESPTool.Loaders.ESP32BootLoader
+namespace EspDotNet.Loaders.ESP32BootLoader
 {
     public class BootLoaderCommandExecutor
     {

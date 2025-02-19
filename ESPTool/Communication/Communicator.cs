@@ -1,11 +1,11 @@
-﻿using ESPTool.Models;
+﻿using EspDotNet.Config;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESPTool.Communication
+namespace EspDotNet.Communication
 {
     public class Communicator : IDisposable
     {
@@ -103,14 +103,14 @@ namespace ESPTool.Communication
         {
             return await _slipFraming.ReadFrameAsync(token);
         }
-        
+
         public async Task ExecutePinSequence(PinSequence sequence, CancellationToken token)
         {
             foreach (var step in sequence.Steps)
             {
                 _serialPort.DtrEnable = step.Dtr;
                 _serialPort.RtsEnable = step.Rts;
-                await Task.Delay(step.DelayMs, token);
+                await Task.Delay(step.Delay, token);
             }
         }
 

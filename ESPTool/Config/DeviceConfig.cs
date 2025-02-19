@@ -1,4 +1,4 @@
-﻿namespace ESPTool.Models
+﻿namespace EspDotNet.Config
 {
     public class DeviceConfig
     {

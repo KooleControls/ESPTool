@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 
-namespace ESPTool.Utils
+namespace EspDotNet.Utils
 {
 
 

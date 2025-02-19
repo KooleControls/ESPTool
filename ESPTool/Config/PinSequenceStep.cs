@@ -1,6 +1,4 @@
-﻿using ESPTool.Loaders.SoftLoader;
-
-namespace ESPTool.Models
+﻿namespace EspDotNet.Config
 {
     public class PinSequenceStep
     {
@@ -8,6 +6,6 @@ namespace ESPTool.Models
 
         public bool Rts { get; set; }
 
-        public int DelayMs { get; set; }
+        public TimeSpan Delay { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ESPTool.Commands
+﻿namespace EspDotNet.Commands
 {
     public enum ResponseCommandStatus : byte
     {

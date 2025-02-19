@@ -1,10 +1,11 @@
-﻿using ESPTool.Commands;
-using ESPTool.Communication;
+﻿using EspDotNet.Commands;
+using EspDotNet.Communication;
+using EspDotNet.Loaders;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESPTool.Loaders.ESP32BootLoader
+namespace EspDotNet.Loaders.ESP32BootLoader
 {
     public class ESP32BootLoader : ILoader
     {
@@ -142,7 +143,7 @@ namespace ESPTool.Loaders.ESP32BootLoader
                 throw new Exception($"Synchronisation failed {response.Error}");
         }
 
-        public virtual async Task<UInt32> ReadRegisterAsync(UInt32 address, CancellationToken token)
+        public virtual async Task<uint> ReadRegisterAsync(uint address, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                .WithCommand(0x0a)
