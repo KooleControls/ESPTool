@@ -1,106 +1,87 @@
-# ESPTool Library
+# ESPTool - ESP32 Flashing and Bootloader Tool
 
-**ESPTool** is a C# library designed to interact with ESP32 devices for tasks such as flashing firmware, erasing flash memory, syncing with the bootloader, and managing device communications. This library provides a structured way to communicate with the ESP32 using serial communication and custom loaders.
+**ESPTool** is a C# library designed to interact with ESP32 devices for tasks such as flashing firmware and erasing flash memory. This library provides a way to communicate with the ESP32 using serial communication.
 
 Currently, the library supports basic ESP32 operations like flashing and erasing firmware.
 
 (Outdated, todo, fix cicd, see [#](https://github.com/KooleControls/ESPTool/issues/5))
 [![NuGet version (ESPTool)](https://img.shields.io/nuget/v/ESPTool)](https://www.nuget.org/packages/ESPTool/)
 
-
-
 > **Looking for a GUI tool?** Check out the [ESPFlasher GUI tool on GitHub](https://github.com/KooleControls/ESPFlasher).
 
+## Features
+- Start the ESP32 bootloader
+- Load and run a softloader
+- Erase flash memory
+- Upload firmware to the device
+- Detect chip type
+- Reset the device
 
-## Key Concepts
+## Example
 
-### 1. **DeviceManager**
-
-The `DeviceManager` class serves as the top-level interface for interacting with ESP32 devices. It manages the initialization, syncing with the bootloader, detection of chip types, and communication with the ESP32 device using the `Loader` and `SoftLoader` classes.
-
-### 2. **ESP32Device**
-
-`ESP32Device` is the specific implementation of the device logic tailored for ESP32 devices. It handles flashing operations, changing baud rates, and managing interactions with the softloader.
-
-## Components Overview
-
-### DeviceManager
-
-`DeviceManager` is responsible for managing the connection and communication with the ESP32 device. It abstracts away the lower-level details and provides high-level methods for:
-- Initializing the device
-- Syncing with the bootloader
-- Detecting the chip type (ESP32)
-- Uploading a softloader
-- Managing the baud rate
-
-**Usage Example**:
 ```csharp
-ILoggerFactory loggerFactory = new LoggerFactory();
-var deviceManager = new DeviceManager(loggerFactory);
+// Create the tool
+var espTool = new ESPTool();
 
-var device = await deviceManager.InitializeAsync("COM3", 115200);
-if (device is ESP32Device esp32Device)
-{
-    await esp32Device.StartSoftloaderAsync();  // Start the softloader
-    await esp32Device.EraseFlashAsync();       // Erase the flash memory
-}
+// Open the serial port
+espTool.OpenSerial("COM3", 115200);
+
+// Start the bootloader (This is the bootloader on the device itself)
+await espTool.StartBootloaderAsync();
+
+// Detect the chip type
+var chipType = await espTool.DetectChipTypeAsync();
+Console.WriteLine($"Detected chip: {chipType}");
+
+// Get the firmware for the softloader, this one is sepecific to the ESP32
+var softloaderFirmware = DefaultFirmwareProviders.ESP32_Softloader;
+
+// Start the softloader (This supports commands that the bootloader lacks)
+await espTool.StartSoftloaderAsync(softloaderFirmware);
+
+// Erase the flash, this is not supported by the bootloader, so we needed to start the softloader
+await espTool.EraseFlashAsync();
+
+// Upload some firmware, you will need to implement the IFirmwareProvider interface
+var firmware = xxx;
+IProgress<float> progress = new Progress<float>(p => Console.WriteLine($"Progress: {p * 100:F2}%"));
+await espTool.UploadFirmwareAsync(firmware, progress: progress);
+
+// Reset the device after uploading firmware
+await espTool.ResetDeviceAsync();
+
+// Close the comport
+espTool.CloseSerial();
 ```
 
-### ESP32Device
+## Configuration
+ESPTool can be initialized with a custom configuration:
+```csharp
+var config = new ESPToolConfig
+{
+    BootloaderSequence = new List<PinSequenceItem> { ... },
+    ResetSequence = new List<PinSequenceItem> { ... },
+    Devices = new List<DeviceConfig>
+    {
+        new DeviceConfig { ChipType = ChipTypes.ESP32, RamBlockSize = 4096 }
+    }
+};
 
-`ESP32Device` implements the logic for interacting with ESP32 devices specifically. It provides methods to:
-- **Start the Softloader**: A RAM-based softloader is used to enable faster and more advanced flashing operations.
-- **Change Baud Rate**: Modify the baud rate for communication.
-- **Erase Flash**: Completely erase the flash memory on the ESP32 device.
-- **Upload Firmware**: Supports both compressed and uncompressed firmware uploads.
+var espTool = new ESPTool(config);
+```
 
-#### Key Methods:
-- `StartSoftloaderAsync()`: Uploads and starts the softloader in RAM.
-- `ChangeBaudAsync(int baud)`: Changes the baud rate of the device.
-- `EraseFlashAsync()`: Erases the entire flash memory.
-- `UploadToFlashAsync(Stream data, uint offset)`: Uploads a stream of uncompressed data to the flash.
-- `UploadCompressedToFlashAsync(Stream data, uint offset)`: Uploads compressed data to the flash.
-
-### Loader and SoftLoader
+## Loader and SoftLoader
 
 `Loader` is the base class that interacts with the bootloader running on the ESP device, handling memory and flash operations. `SoftLoader` extends this functionality by enabling compressed data flashing and dynamic baud rate adjustments. The `SoftLoader` must be uploaded to the ESP device's RAM before use.
 
-### Communicator
+## Communicator
 
 `Communicator` handles low-level serial communication with the ESP32 device, including operations like opening and closing the serial port, sending SLIP-encoded frames, and reading data from the device.
 
-## How to Use
-
-### Uploading Firmware to the ESP32
-
-The following example shows how to initialize the ESP32 device, upload a softloader, and flash firmware.
-
-```csharp
-ILoggerFactory loggerFactory = new LoggerFactory();
-var deviceManager = new DeviceManager(loggerFactory);
-
-// Initialize the ESP32 device
-var device = await deviceManager.InitializeAsync("COM3", 115200);
-
-if (device is ESP32Device esp32Device)
-{
-    // Start the softloader
-    await esp32Device.StartSoftloaderAsync();
-
-    // Erase the flash memory
-    await esp32Device.EraseFlashAsync();
-
-    // Flash firmware
-    using (FileStream firmwareStream = File.OpenRead("firmware.bin"))
-    {
-        await esp32Device.UploadToFlashAsync(firmwareStream, 0x1000); // Offset 0x1000
-    }
-
-    // Reset the device after flashing
-    await esp32Device.ResetDeviceAsync();
-}
-```
+## License
+This project is licensed under the MIT License. See LICENSE for details.
 
 ## Additional Resources
 
 - Official ESPTool Protocol Documentation: [Espressif Docs](https://docs.espressif.com/projects/esptool/en/latest/esp32/advanced-topics/serial-protocol.html)
+
