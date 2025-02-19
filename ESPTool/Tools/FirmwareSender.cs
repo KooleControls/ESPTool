@@ -8,7 +8,7 @@ namespace ESPTool.Tools
         public int BlockSize { get; set; } = 1024;
         public FirmwareUploadOptions UploadMethod { get; set; }
         public bool ExecuteAfterSending { get; set; } = false;
-
+        public IProgress<float> Progress { get; set; } = new Progress<float>();
 
         private readonly ILoader _loader;
 
@@ -19,6 +19,7 @@ namespace ESPTool.Tools
 
         public async Task UploadFirmwareAsync(Firmware firmware, CancellationToken token = default)
         {
+            Progress.Report(0);
             foreach (var segment in firmware.Segments)
             {
                 await UploadSegment(segment, (uint)BlockSize, token);
@@ -27,6 +28,7 @@ namespace ESPTool.Tools
             // End memory transfer
             uint execute = (uint)(ExecuteAfterSending ? 1 : 0);
             await SendEndAsync(execute, firmware.EntryPoint, token);
+            Progress.Report(1);
         }
 
 
@@ -54,6 +56,7 @@ namespace ESPTool.Tools
                     break;
 
                 await SendBlockAsync(buffer, i, token);
+                Progress.Report((float)i / blocks);
             }
         }
 
