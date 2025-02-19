@@ -33,8 +33,8 @@ await espTool.StartBootloaderAsync();
 var chipType = await espTool.DetectChipTypeAsync();
 Console.WriteLine($"Detected chip: {chipType}");
 
-// Get the firmware for the softloader, this one is sepecific to the ESP32
-var softloaderFirmware = DefaultFirmwareProviders.ESP32_Softloader;
+// Get the firmware for the softloader
+var softloaderFirmware = DefaultFirmwareProviders.GetSoftloaderForDevice(chipType);
 
 // Start the softloader (This supports commands that the bootloader lacks)
 await espTool.StartSoftloaderAsync(softloaderFirmware);
