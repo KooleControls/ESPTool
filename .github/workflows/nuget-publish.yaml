@@ -40,7 +40,8 @@ jobs:
           name: Release v${{ env.VERSION }}
           body: |
             **What's new in v${{ env.VERSION }}**
-            - (Add release notes manually or use CHANGELOG.md)
+            - Automatic release via GitHub Actions.
+            - View commit history for more details.
           files: nupkg/*.nupkg
           draft: false
           prerelease: false
