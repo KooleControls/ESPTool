@@ -25,7 +25,7 @@ The code should support all ESP devices, however I dont have these devices avail
 
 - [ ] ESP8266  
 - [x] ESP32  
-- [ ] ESP32-S2  Awaiting approval: #14
+- [ ] ESP32-S2  Awaiting approval: https://github.com/KooleControls/ESPTool/issues/14
 - [ ] ESP32-S3  
 - [ ] ESP32-C2  
 - [ ] ESP32-C3  
