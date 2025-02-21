@@ -23,14 +23,19 @@ I created this project because I wanted a native C# implementation that does not
 
 The code should support all ESP devices, however I dont have these devices available for testing. The devices that have been tested are:
 
-- [ ] ESP8266  
-- [x] ESP32  
-- [ ] ESP32-S2  Awaiting approval: https://github.com/KooleControls/ESPTool/issues/14
-- [ ] ESP32-S3  
-- [ ] ESP32-C2  
-- [x] ESP32-C3  
-- [ ] ESP32-C6  
-
+- [ ] ESP8266,
+- [x] ESP32,
+- [ ] ESP32-c2,
+- [x] ESP32-c3,
+- [ ] ESP32-c6,
+- [ ] ESP32-h2,
+- [ ] ESP32-p4,
+- [ ] ESP32-s2, Awaiting approval: https://github.com/KooleControls/ESPTool/issues/14
+- [ ] ESP32-s3,
+- [ ] ESP32-c6beta,
+- [ ] ESP32-h2beta1,
+- [ ] ESP32-h2beta2,
+- [ ] ESP32-s3beta2,
 
 ## Example Usage
 
