@@ -4,8 +4,19 @@
     {
         public List<DeviceConfig> Devices { get; set; } =
         [
-            new DeviceConfig{ ChipType = ChipTypes.ESP32,   FlashBlockSize = 1024, RamBlockSize = 6144 },
-            new DeviceConfig{ ChipType = ChipTypes.ESP32S2, FlashBlockSize = 2048, RamBlockSize = 6144 }
+            new DeviceConfig{ ChipType = ChipTypes.ESP32c6,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32c3,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32c2,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32,          FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP8266,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32s3beta2,   FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32s3,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32s2,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32p4,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32h2beta2,   FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32h2beta1,   FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32h2,        FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32c6beta,    FlashBlockSize = 0x400, RamBlockSize = 0x1800 },
         ];
 
         public PinSequence? BootloaderSequence { get; set; } = new PinSequence
