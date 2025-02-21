@@ -63,8 +63,17 @@ await espTool.EraseFlashAsync();
 await _espTool.ChangeBaudAsync(BaudRate, token);
 
 // Upload some firmware, you will need to implement the IFirmwareProvider interface
-var firmware = xxx;
-await _espTool.UploadFirmwareAsync(firmware, FirmwareUploadMethods.FlashDeflated);
+var myFirmware = new FirmwareProvider(
+	entryPoint: 0x00000000,
+	segments:
+	[
+		new FirmwareSegmentProvider(0x00001000, File.ReadAllBytes("bootloader.bin")),
+		new FirmwareSegmentProvider(0x00008000, File.ReadAllBytes("partition-table.bin")),
+		new FirmwareSegmentProvider(0x0000F000, File.ReadAllBytes("ota_data_initial.bin")),
+		new FirmwareSegmentProvider(0x00800000, File.ReadAllBytes("application.bin")),
+	]
+);
+await _espTool.UploadFirmwareAsync(myFirmware, FirmwareUploadMethods.FlashDeflated);
 
 // Reset the device after uploading firmware
 await espTool.ResetDeviceAsync();
