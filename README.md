@@ -21,20 +21,16 @@ I created this project because I wanted a native C# implementation that does not
 
 ## Supported Devices
 
-Currently, the following ESP devices are supported:
+The code should support all ESP devices, however I dont have these devices available for testing. The devices that have been tested are:
 
 - [ ] ESP8266  
 - [x] ESP32  
-- [x] ESP32-S2  
+- [ ] ESP32-S2  
 - [ ] ESP32-S3  
 - [ ] ESP32-C2  
 - [ ] ESP32-C3  
 - [ ] ESP32-C6  
 
-Contributions to add support for other ESP chips are welcome! Feel free to submit pull requests or open an issue if you encounter problems.
-
-Stubloaders can be found in the toolchain:
-\tools\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\targets\stub_flasher
 
 ## Example Usage
 
@@ -111,5 +107,4 @@ This project is licensed under the MIT License. See LICENSE for details.
 ## Additional Resources
 
 - **Official ESPTool Protocol Documentation:** [Espressif Docs](https://docs.espressif.com/projects/esptool/en/latest/esp32/advanced-topics/serial-protocol.html)
-
-
+- **Stubloaders** can be found in the toolchain: \tools\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\targets\stub_flasher
