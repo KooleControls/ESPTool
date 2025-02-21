@@ -1,23 +1,38 @@
 # ESPTool - ESP32 Flashing and Bootloader Tool
 
-**ESPTool** is a C# library designed to interact with ESP32 devices for tasks such as flashing firmware and erasing flash memory. This library provides a way to communicate with the ESP32 using serial communication.
+**ESPTool** is a C# implementation of Espressif's ESP tool: [https://github.com/espressif/esptool](https://github.com/espressif/esptool)
 
-Currently, the library supports basic ESP32 operations like flashing and erasing firmware.
+I created this project because I wanted a native C# implementation that does not rely on external applications. This library is designed to interact with ESP32 devices for tasks such as flashing firmware and erasing flash memory, providing a way to communicate with ESP32 using serial communication.
 
-(Outdated, todo, fix cicd, see [#](https://github.com/KooleControls/ESPTool/issues/5))
-[![NuGet version (ESPTool)](https://img.shields.io/nuget/v/ESPTool)](https://www.nuget.org/packages/ESPTool/)
+> **Note:** The NuGet package is currently outdated. See this issue for more details: [Issue #5](https://github.com/KooleControls/ESPTool/issues/12)
 
 > **Looking for a GUI tool?** Check out the [ESPFlasher GUI tool on GitHub](https://github.com/KooleControls/ESPFlasher).
 
 ## Features
-- Start the ESP32 bootloader
+
+- Execute pin sequences to start the bootloader
 - Load and run a softloader
 - Erase flash memory
 - Upload firmware to the device
 - Detect chip type
 - Reset the device
 
-## Example
+## Supported Devices
+
+Currently, the following ESP devices are supported:
+
+- [ ] ESP8266  
+- [x] ESP32  
+- [x] ESP32-S2  
+- [ ] ESP32-S3  
+- [ ] ESP32-C2  
+- [ ] ESP32-C3  
+- [ ] ESP32-C6  
+
+Contributions to add support for other ESP chips are welcome! Feel free to submit pull requests or open an issue if you encounter problems.
+
+
+## Example Usage
 
 ```csharp
 // Create the tool
@@ -42,46 +57,46 @@ await espTool.StartSoftloaderAsync(softloaderFirmware);
 // Erase the flash, this is not supported by the bootloader, so we needed to start the softloader
 await espTool.EraseFlashAsync();
 
+// Change the baudrate for faster uploading
+await _espTool.ChangeBaudAsync(BaudRate, token);
+
 // Upload some firmware, you will need to implement the IFirmwareProvider interface
 var firmware = xxx;
-IProgress<float> progress = new Progress<float>(p => Console.WriteLine($"Progress: {p * 100:F2}%"));
-await espTool.UploadFirmwareAsync(firmware, progress: progress);
+await _espTool.UploadFirmwareAsync(firmware, FirmwareUploadMethods.FlashDeflated);
 
 // Reset the device after uploading firmware
 await espTool.ResetDeviceAsync();
 
-// Close the comport
+// Close the serial port
 espTool.CloseSerial();
 ```
 
-## Configuration
-ESPTool can be initialized with a custom configuration:
-```csharp
-var config = new ESPToolConfig
-{
-    BootloaderSequence = new List<PinSequenceItem> { ... },
-    ResetSequence = new List<PinSequenceItem> { ... },
-    Devices = new List<DeviceConfig>
-    {
-        new DeviceConfig { ChipType = ChipTypes.ESP32, RamBlockSize = 4096 }
-    }
-};
 
-var espTool = new ESPTool(config);
-```
+# Software Overview
 
-## Loader and SoftLoader
+`ESPTool` is a C# implementation of the ESP32 flashing and bootloader communication protocol. It allows you to interface with ESP32-based devices over serial communication, perform chip detection, erase flash memory, and upload firmware. It extends the default bootloader functionality by enabling the use of a **softloader**, which adds extra commands that aren't available in the ESP ROM bootloader.
 
-`Loader` is the base class that interacts with the bootloader running on the ESP device, handling memory and flash operations. `SoftLoader` extends this functionality by enabling compressed data flashing and dynamic baud rate adjustments. The `SoftLoader` must be uploaded to the ESP device's RAM before use.
+### Loader and SoftLoader
 
-## Communicator
+The `ESP32BootLoader` and `SoftLoader` classes are responsible for communicating with the bootloader and softloader running on the ESP device. 
 
-`Communicator` handles low-level serial communication with the ESP32 device, including operations like opening and closing the serial port, sending SLIP-encoded frames, and reading data from the device.
+- **`ESP32BootLoader`**: Represents the interaction with the bootloader built into the ESP ROM, offering limited commands.
+- **`SoftLoader`**: Represents the interaction with a software-loaded bootloader running in RAM, extending functionality with additional commands like compressed data flashing and baud rate adjustments.
+
+### Communicator
+
+- **`Communicator`** handles low-level serial communication with the ESP32 device, including:
+  - Opening and closing the serial port
+  - Sending SLIP-encoded frames
+  - Reading and writing data from/to the device
+  - Sending bootloader and reset pin sequences
 
 ## License
+
 This project is licensed under the MIT License. See LICENSE for details.
 
 ## Additional Resources
 
-- Official ESPTool Protocol Documentation: [Espressif Docs](https://docs.espressif.com/projects/esptool/en/latest/esp32/advanced-topics/serial-protocol.html)
+- **Official ESPTool Protocol Documentation:** [Espressif Docs](https://docs.espressif.com/projects/esptool/en/latest/esp32/advanced-topics/serial-protocol.html)
+
 
