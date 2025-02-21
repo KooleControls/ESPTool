@@ -27,7 +27,7 @@ namespace EspDotNet.Tools
         {
             Progress.Report(0);
             var totalSize = firmwareProvider.Segments.Sum(s => s.Size);
-            float uploadedBytes = 0;
+            float progress = 0;
 
             foreach (var segment in firmwareProvider.Segments)
             {
@@ -36,11 +36,11 @@ namespace EspDotNet.Tools
                 Action<float> reportProgress = (p) =>
                 {
                     float segmentProgress = p * segmentWeight;
-                    uploadedBytes += segment.Size * p;
-                    Progress.Report(uploadedBytes / totalSize); // Report overall fraction 0-1
+                    Progress.Report(segmentProgress + progress); // Report overall fraction 0-1
                 };
 
                 await UploadSegment(segment, _config.BlockSize, token, new Progress<float>(reportProgress));
+                progress += segmentWeight;
             }
 
             // End memory transfer
@@ -53,16 +53,16 @@ namespace EspDotNet.Tools
         private async Task UploadSegment(IFirmwareSegmentProvider segmentProvider, uint blockSize, CancellationToken token, IProgress<float> progress)
         {
             Stream data = await segmentProvider.GetStreamAsync(token);
-
+            uint size = segmentProvider.Size;
             // Compress data if needed
-            if (_config.UploadMethod == FirmwareUploadOptions.FlashDeflated)
+            if (_config.UploadMethod == FirmwareUploadMethods.FlashDeflated)
             {
                 data = new MemoryStream();
                 ZlibCompressionHelper.CompressToZlibStream(await segmentProvider.GetStreamAsync(token), data);
                 data.Position = 0;
+                size = (uint)data.Length;
             }
 
-            uint size = (uint)data.Length;
             uint blocks = (size + blockSize - 1) / blockSize;
             uint offset = segmentProvider.Offset;
 
@@ -91,13 +91,13 @@ namespace EspDotNet.Tools
         {
             switch (_config.UploadMethod)
             {
-                case FirmwareUploadOptions.Flash:
+                case FirmwareUploadMethods.Flash:
                     await _loader.FlashBeginAsync(size, blocks, blockSize, offset, token);
                     break;
-                case FirmwareUploadOptions.FlashDeflated:
+                case FirmwareUploadMethods.FlashDeflated:
                     await _loader.FlashDeflBeginAsync(size, blocks, blockSize, offset, token);
                     break;
-                case FirmwareUploadOptions.Ram:
+                case FirmwareUploadMethods.Ram:
                     await _loader.MemBeginAsync(size, blocks, blockSize, offset, token);
                     break;
                 default: throw new Exception();
@@ -109,13 +109,13 @@ namespace EspDotNet.Tools
         {
             switch (_config.UploadMethod)
             {
-                case FirmwareUploadOptions.Flash:
+                case FirmwareUploadMethods.Flash:
                     await _loader.FlashDataAsync(block, blockNo, token);
                     break;
-                case FirmwareUploadOptions.FlashDeflated:
+                case FirmwareUploadMethods.FlashDeflated:
                     await _loader.FlashDeflDataAsync(block, blockNo, token);
                     break;
-                case FirmwareUploadOptions.Ram:
+                case FirmwareUploadMethods.Ram:
                     await _loader.MemDataAsync(block, blockNo, token);
                     break;
                 default: throw new Exception();
@@ -126,13 +126,13 @@ namespace EspDotNet.Tools
         {
             switch (_config.UploadMethod)
             {
-                case FirmwareUploadOptions.Flash:
+                case FirmwareUploadMethods.Flash:
                     await _loader.FlashEndAsync(execute, entryPoint, token);
                     break;
-                case FirmwareUploadOptions.FlashDeflated:
+                case FirmwareUploadMethods.FlashDeflated:
                     await _loader.FlashDeflEndAsync(execute, entryPoint, token);
                     break;
-                case FirmwareUploadOptions.Ram:
+                case FirmwareUploadMethods.Ram:
                     await _loader.MemEndAsync(execute, entryPoint, token);
                     break;
                 default: throw new Exception();

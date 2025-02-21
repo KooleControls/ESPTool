@@ -62,11 +62,11 @@ namespace EspDotNet.Communication
         public void ChangeBaudRate(int baudRate)
         {
             if (_serialPort.IsOpen)
-            {
                 _serialPort.Close();
-                _serialPort.BaudRate = baudRate;
-                _serialPort.Open();
-            }
+
+            _serialPort.BaudRate = baudRate;
+            _serialPort.Open();
+            
         }
 
         /// <summary>

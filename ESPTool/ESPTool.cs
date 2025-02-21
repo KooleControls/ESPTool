@@ -45,7 +45,6 @@ namespace EspDotNet
             _loader = bootloader;
         }
 
-
         public async Task StartSoftloaderAsync(IFirmwareProvider softloader, CancellationToken token = default)
         {
             if (_loader == null)
@@ -54,19 +53,8 @@ namespace EspDotNet
             // Detect chip type
             var chipType = await DetectChipTypeAsync(token);
 
-            // Find device information
-            var deviceInfo = _config.Devices.FirstOrDefault(fw => fw.ChipType == chipType) ?? throw new Exception($"No deviceconfig found for '{chipType}'");
-
-            // Send softloader to device
-            FirmwareUploadConfig config = new FirmwareUploadConfig
-            {
-                BlockSize = (uint)deviceInfo.RamBlockSize,
-                ExecuteAfterSending = true,
-                UploadMethod = FirmwareUploadOptions.Ram
-            };
-
-            FirmwareUploadTool firmwareSender = new FirmwareUploadTool(_loader, config);
-            await firmwareSender.UploadFirmwareAsync(softloader, token);
+            // Upload the softstarter
+            await UploadFirmwareAndExecuteAsync(softloader, FirmwareUploadMethods.Ram, token);
 
             // Wait for the softloader to start
             SoftLoader softLoader = new SoftLoader(_communicator);
@@ -83,12 +71,32 @@ namespace EspDotNet
             await flashEraser.EraseFlashAsync(token);
         }
 
-        public async Task UploadFirmwareAsync(IFirmwareProvider firmware, CancellationToken token = default, IProgress<float>? progress = default)
+        public async Task UploadFirmwareAsync(IFirmwareProvider firmware, FirmwareUploadMethods method, CancellationToken token = default, IProgress<float>? progress = default)
         {
             if (_loader == null)
                 throw new Exception("No loader available, start loader first");
 
-            FirmwareUploadTool firmwareSender = new FirmwareUploadTool(_loader);
+            // Detect chip type
+            var chipType = await DetectChipTypeAsync(token);
+
+            // Upload the softstarter
+            var uploadConfig = GetFirmwareUploadConfig(chipType, method, false);
+            FirmwareUploadTool firmwareSender = new FirmwareUploadTool(_loader, uploadConfig);
+            firmwareSender.Progress = progress ?? new Progress<float>();
+            await firmwareSender.UploadFirmwareAsync(firmware, token);
+        }
+
+        public async Task UploadFirmwareAndExecuteAsync(IFirmwareProvider firmware, FirmwareUploadMethods method, CancellationToken token = default, IProgress<float>? progress = default)
+        {
+            if (_loader == null)
+                throw new Exception("No loader available, start loader first");
+
+            // Detect chip type
+            var chipType = await DetectChipTypeAsync(token);
+
+            // Upload the softstarter
+            var uploadConfig = GetFirmwareUploadConfig(chipType, method, true);
+            FirmwareUploadTool firmwareSender = new FirmwareUploadTool(_loader, uploadConfig);
             firmwareSender.Progress = progress ?? new Progress<float>();
             await firmwareSender.UploadFirmwareAsync(firmware, token);
         }
@@ -105,6 +113,33 @@ namespace EspDotNet
         {
             var bootloaderSequence = _config.ResetSequence ?? throw new Exception("Config error, no reset sequence found");
             await _communicator.ExecutePinSequence(bootloaderSequence, token);
+        }
+
+        public async Task ChangeBaudAsync(int baud, CancellationToken token)
+        {
+            var oldBaud = _communicator.GetBaudRate();
+            if (baud == oldBaud)
+                return;
+            if (_loader == null)
+                throw new Exception("No loader available, start loader first");
+            ChangeBaudrateTool changeBaudrateTool = new ChangeBaudrateTool(_loader);
+            await changeBaudrateTool.ChangeBaudAsync(baud, oldBaud, token);
+            _communicator.ChangeBaudRate(baud);
+        }
+
+
+
+
+        private FirmwareUploadConfig GetFirmwareUploadConfig(ChipTypes chipType, FirmwareUploadMethods uploadMethod, bool execute)
+        {
+            // Find device information
+            var deviceInfo = _config.Devices.FirstOrDefault(fw => fw.ChipType == chipType) ?? throw new Exception($"No deviceconfig found for '{chipType}'");
+            return new FirmwareUploadConfig
+            {
+                BlockSize = uploadMethod == FirmwareUploadMethods.Ram ? (uint)deviceInfo.RamBlockSize : (uint)deviceInfo.FlashBlockSize,
+                ExecuteAfterSending = execute,
+                UploadMethod = uploadMethod
+            };
         }
     }
 }

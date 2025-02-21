@@ -1,6 +1,6 @@
 ﻿namespace EspDotNet.Tools.Firmware
 {
-    public enum FirmwareUploadOptions
+    public enum FirmwareUploadMethods
     {
         Flash,
         FlashDeflated,

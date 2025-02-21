@@ -14,7 +14,7 @@
             [
                 new PinSequenceStep {  Dtr = false, Rts = true, Delay = TimeSpan.FromMilliseconds(100) },
                 new PinSequenceStep {  Dtr = true,  Rts = false, Delay = TimeSpan.FromMilliseconds(500) },
-                new PinSequenceStep {  Dtr = false, Rts = false, Delay = TimeSpan.FromMilliseconds(0) },
+                new PinSequenceStep {  Dtr = false, Rts = false, Delay = TimeSpan.FromMilliseconds(100) },
             ]
         };
 
