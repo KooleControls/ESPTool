@@ -1,0 +1,34 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - "v*"  # Runs only when a version tag is pushed (e.g., v1.0.0)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Get version from Git tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Build the project
+        run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }}
+
+      - name: Pack NuGet package
+        run: dotnet pack --configuration Release --no-build --output nupkg /p:PackageVersion=${{ env.VERSION }}
+
+      - name: Push to NuGet
+        run: dotnet nuget push nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
