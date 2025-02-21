@@ -14,7 +14,7 @@ namespace EspDotNet.Tools.Firmware
             }
         );
 
-        public static IFirmwareProvider ESP32S2_Softloader { get; } = new FirmwareProvider(
+        public static IFirmwareProvider ESP32S3_Softloader { get; } = new FirmwareProvider(
             entryPoint: 0x40378A80,
             segments: new List<IFirmwareSegmentProvider>
             {
@@ -28,7 +28,7 @@ namespace EspDotNet.Tools.Firmware
             return chipType switch
             {
                 ChipTypes.ESP32 => ESP32_Softloader,
-                ChipTypes.ESP32S2 => ESP32S2_Softloader,
+                ChipTypes.ESP32S3 => ESP32S3_Softloader,
                 _ => throw new Exception($"Chiptype {chipType} not supported"),
             };
         }
