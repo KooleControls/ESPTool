@@ -15,6 +15,38 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\stub\stub_flasher_32.json" />
+	  <None Remove="Resources\stub\stub_flasher_32c2.json" />
+	  <None Remove="Resources\stub\stub_flasher_32c3.json" />
+	  <None Remove="Resources\stub\stub_flasher_32c6.json" />
+	  <None Remove="Resources\stub\stub_flasher_32c6beta.json" />
+	  <None Remove="Resources\stub\stub_flasher_32h2.json" />
+	  <None Remove="Resources\stub\stub_flasher_32h2beta1.json" />
+	  <None Remove="Resources\stub\stub_flasher_32h2beta2.json" />
+	  <None Remove="Resources\stub\stub_flasher_32p4.json" />
+	  <None Remove="Resources\stub\stub_flasher_32s2.json" />
+	  <None Remove="Resources\stub\stub_flasher_32s3.json" />
+	  <None Remove="Resources\stub\stub_flasher_32s3beta2.json" />
+	  <None Remove="Resources\stub\stub_flasher_8266.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32c2.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32c3.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32c6.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32c6beta.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32h2.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32h2beta1.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32h2beta2.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32p4.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32s2.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32s3.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_32s3beta2.json" />
+	  <EmbeddedResource Include="Resources\stub\stub_flasher_8266.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="System.IO.Ports" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <None Include="..\README.md" Pack="true" PackagePath="README.md" />
