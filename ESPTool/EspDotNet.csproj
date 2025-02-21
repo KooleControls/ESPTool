@@ -11,6 +11,7 @@
 		<RepositoryType>Git</RepositoryType>
 		<PackageTags>ESP32</PackageTags>
 		<LangVersion>latest</LangVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>

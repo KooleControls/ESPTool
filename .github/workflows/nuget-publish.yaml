@@ -1,9 +1,9 @@
-name: Publish to NuGet
+name: Publish to NuGet & GitHub Releases
 
 on:
   push:
     tags:
-      - "v*"  # Runs only when a version tag is pushed (e.g., v1.0.0)
+      - "v*"  # Triggers when a tag like v2.0.2 is pushed
 
 jobs:
   publish:
@@ -32,3 +32,17 @@ jobs:
 
       - name: Push to NuGet
         run: dotnet nuget push nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body: |
+            **What's new in v${{ env.VERSION }}**
+            - (Add release notes manually or use CHANGELOG.md)
+          files: nupkg/*.nupkg
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
