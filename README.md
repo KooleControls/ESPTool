@@ -33,6 +33,8 @@ Currently, the following ESP devices are supported:
 
 Contributions to add support for other ESP chips are welcome! Feel free to submit pull requests or open an issue if you encounter problems.
 
+Stubloaders can be found in the toolchain:
+\tools\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\targets\stub_flasher
 
 ## Example Usage
 

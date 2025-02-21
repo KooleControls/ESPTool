@@ -4,8 +4,9 @@
     {
         public List<DeviceConfig> Devices { get; set; } =
         [
-            new DeviceConfig{ ChipType = ChipTypes.ESP32,   FlashBlockSize = 1024, RamBlockSize = 6144 },
-            new DeviceConfig{ ChipType = ChipTypes.ESP32S2, FlashBlockSize = 2048, RamBlockSize = 6144 }
+            new DeviceConfig{ ChipType = ChipTypes.ESP32,   FlashBlockSize = 0x4000, RamBlockSize = 6144 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32s2, FlashBlockSize = 0x4000, RamBlockSize = 6144 },
+            new DeviceConfig{ ChipType = ChipTypes.ESP32c3, FlashBlockSize = 0x4000, RamBlockSize = 6144 },
         ];
 
         public PinSequence? BootloaderSequence { get; set; } = new PinSequence
