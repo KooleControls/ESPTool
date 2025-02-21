@@ -4,7 +4,9 @@
 
 I created this project because I wanted a native C# implementation that does not rely on external applications. This library is designed to interact with ESP32 devices for tasks such as flashing firmware and erasing flash memory, providing a way to communicate with ESP32 using serial communication.
 
-> **Note:** The NuGet package is currently outdated. See this issue for more details: [Issue #5](https://github.com/KooleControls/ESPTool/issues/12)
+
+[![NuGet](https://img.shields.io/nuget/v/ESPTool.svg)](https://www.nuget.org/packages/ESPTool)
+
 
 > **Looking for a GUI tool?** Check out the [ESPFlasher GUI tool on GitHub](https://github.com/KooleControls/ESPFlasher).
 
