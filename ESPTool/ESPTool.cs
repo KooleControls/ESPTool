@@ -127,7 +127,37 @@ namespace EspDotNet
             _communicator.ChangeBaudRate(baud);
         }
 
+        public async Task<string> GetBaseMacAddressAsync(CancellationToken token = default)
+        {
+            if (_loader == null)
+                throw new Exception("No loader available, start loader first");
+            GetAddressesTool Addr = new GetAddressesTool(_loader);
+            return await Addr.GetBaseMacAddressAsync(token);
+        } // End of Task
 
+        public async Task<string> GetWifiAPAddressAsync(CancellationToken token = default)
+        {
+            if (_loader == null)
+                throw new Exception("No loader available, start loader first");
+            GetAddressesTool Addr = new GetAddressesTool(_loader);
+            return await Addr.GetWiFiAPMacAddressAsync(token);
+        }
+
+        public async Task<string> GetBlueToothAddressAsync(CancellationToken token = default)
+        {
+            if (_loader == null)
+                throw new Exception("No loader available, start loader first");
+            GetAddressesTool Addr = new GetAddressesTool(_loader);
+            return await Addr.GetBlueToothMacAddressAsync(token);
+        }
+
+        public async Task<string> GetEthernetAddressAsync(CancellationToken token = default)
+        {
+            if (_loader == null)
+                throw new Exception("No loader available, start loader first");
+            GetAddressesTool Addr = new GetAddressesTool(_loader);
+            return await Addr.GetEthernetAddressAsync(token);
+        }
 
 
         private FirmwareUploadConfig GetFirmwareUploadConfig(ChipTypes chipType, FirmwareUploadMethods uploadMethod, bool execute)
