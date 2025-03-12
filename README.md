@@ -66,7 +66,7 @@ Each upload tool encapsulates a specific firmware upload mechanism:
 
 The main `ESPTool` class serves as a toolbox for creating and retrieving the various tools needed to interact with an ESP device. Its design forces the user to explicitly handle the device state by passing the appropriate loader and chip type when needed, reducing the risk of operating on a disconnected or unsupported device.
 
-For usage examples, see [Example.cs](./Example.cs).
+For usage examples, see [Example.cs](./ESPTool/Example.cs).
 
 ## License
 
