@@ -44,7 +44,7 @@ namespace EspDotNet
             return new SoftloaderTool(_communicator, uploadTool, firmwareProvider);
         }
 
-        public ResetDeviceTool GetResetDeviceTool(CancellationToken token = default)
+        public ResetDeviceTool GetResetDeviceTool()
         {
             var resetSequence = _config.ResetSequence ?? throw new Exception("Config error, no reset sequence found");
             return new ResetDeviceTool(_communicator, resetSequence);
