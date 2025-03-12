@@ -1,4 +1,5 @@
-﻿using EspDotNet.Loaders.SoftLoader;
+﻿using EspDotNet.Config;
+using EspDotNet.Loaders.SoftLoader;
 using EspDotNet.Tools;
 using EspDotNet.Tools.Firmware;
 using System.Diagnostics;
@@ -94,6 +95,14 @@ namespace EspDotNet
 
             // Reset the device
             await espTool.GetResetDeviceTool().ResetAsync(token);
+        }
+
+        public async Task<byte[]> GetMacAddress(CancellationToken token = default)
+        {
+            _ = softloader ?? throw new Exception("Initialize first");
+
+            EFlagKey eFlagToRead = EFlagKey.BaseMacAddress;
+            return await espTool.GetEFuseTool(softloader, chipType).ReadAsync(eFlagToRead, token);
         }
     }
 }

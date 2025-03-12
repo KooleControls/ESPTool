@@ -2,6 +2,12 @@
   "ChipType": "ESP32",
   "FlashBlockSize": 1024,
   "RamBlockSize": 6144,
-  "MagicRegisterValue": 15736195
+  "MagicRegisterValue": 15736195,
+  "EFlags": {
+    "BaseMacAddress": {
+      "Address": 1073061892,
+      "Size": 6
+    }
+  }
 }
 

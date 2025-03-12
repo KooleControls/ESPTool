@@ -6,5 +6,8 @@
         public int RamBlockSize { get; set; }
         public int FlashBlockSize { get; set; }
         public int MagicRegisterValue { get; set; }
+        public Dictionary<EFlagKey, EFuseMapping> EFlags { get; set; } = new Dictionary<EFlagKey, EFuseMapping>();
+
     }
+
 }

@@ -96,5 +96,11 @@ namespace EspDotNet
         {
             return new FlashEraseTool(loader);
         }
+
+        public EFuseTool GetEFuseTool(ILoader loader, ChipTypes chipType)
+        {
+            var deviceConfig = _config.Devices.FirstOrDefault(deviceConfig => deviceConfig.ChipType == chipType) ?? throw new Exception($"No config found for device {chipType}");
+            return new EFuseTool(loader, deviceConfig);
+        }
     }
 }
