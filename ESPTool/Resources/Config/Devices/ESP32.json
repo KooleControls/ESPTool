@@ -1,6 +1,7 @@
 {
   "ChipType": "ESP32",
   "FlashBlockSize": 1024,
-  "RamBlockSize": 6144
+  "RamBlockSize": 6144,
+  "MagicRegisterValue": 15736195
 }
 

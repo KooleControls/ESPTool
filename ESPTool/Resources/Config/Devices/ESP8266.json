@@ -1,6 +1,7 @@
 {
   "ChipType": "ESP8266",
   "FlashBlockSize": 1024,
-  "RamBlockSize": 6144
+  "RamBlockSize": 6144,
+  "MagicRegisterValue": 4293968129
 }
 

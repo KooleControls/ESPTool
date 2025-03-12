@@ -108,7 +108,7 @@ namespace EspDotNet
         {
             if (_loader == null)
                 throw new Exception("No loader available, start loader first");
-            ChipTypeDetectTool chipTypeDetector = new ChipTypeDetectTool(_loader);
+            ChipTypeDetectTool chipTypeDetector = new ChipTypeDetectTool(_loader, _config);
             return await chipTypeDetector.DetectChipTypeAsync(token);
         }
 
