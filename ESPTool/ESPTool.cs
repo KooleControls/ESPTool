@@ -13,7 +13,6 @@ namespace EspDotNet
     {
         private readonly Communicator _communicator;
         private readonly ESPToolConfig _config;
-        private ILoader? _loader;
 
         public ESPTool()
         {
@@ -30,118 +29,72 @@ namespace EspDotNet
         public void OpenSerial(string portName, int baudRate) => _communicator.OpenSerial(portName, baudRate);
         public void CloseSerial() => _communicator.CloseSerial();
 
-
-        public async Task StartBootloaderAsync(CancellationToken token = default)
+        // --------
+        // TOOL BOX
+        // --------
+        public BootloaderTool GetBootloaderTool()
         {
-            // Enter the device bootloader
-            var bootloaderSequence = _config.BootloaderSequence ?? throw new Exception("Config error, no bootloader sequence found");
-            await _communicator.ExecutePinSequence(bootloaderSequence, token);
-
-            // Create bootloader instance
-            var bootloader = new ESP32BootLoader(_communicator);
-            if (!await bootloader.Synchronize(token))
-                throw new Exception("Failed to synchronize with bootloader");
-
-            _loader = bootloader;
+            return new BootloaderTool(_communicator, _config.BootloaderSequence);
         }
 
-        public async Task StartSoftloaderAsync(IFirmwareProvider softloader, CancellationToken token = default)
+        public SoftloaderTool GetSoftloaderTool(ILoader loader, ChipTypes chipType)
         {
-            if (_loader == null)
-                throw new Exception("No loader available, start bootloader first");
-
-            // Detect chip type
-            var chipType = await DetectChipTypeAsync(token);
-
-            // Upload the softstarter
-            await UploadFirmwareAndExecuteAsync(softloader, FirmwareUploadMethods.Ram, token);
-
-            // Wait for the softloader to start
-            SoftLoader softLoader = new SoftLoader(_communicator);
-            await softLoader.WaitForOHAIAsync(token);
-
-            _loader = softLoader;
+            var firmwareProvider = DefaultFirmwareProviders.GetSoftloaderForDevice(chipType);
+            var uploadTool = GetUploadRamTool(loader, chipType);
+            return new SoftloaderTool(_communicator, uploadTool, firmwareProvider);
         }
 
-
-
-
-        public async Task EraseFlashAsync(CancellationToken token = default)
+        public ResetDeviceTool GetResetDeviceTool(CancellationToken token = default)
         {
-            if (_loader == null)
-                throw new Exception("No loader available, start loader first");
-            FlashEraseTool flashEraser = new FlashEraseTool(_loader);
-            await flashEraser.EraseFlashAsync(token);
+            var resetSequence = _config.ResetSequence ?? throw new Exception("Config error, no reset sequence found");
+            return new ResetDeviceTool(_communicator, resetSequence);
         }
 
-        public async Task UploadFirmwareAsync(IFirmwareProvider firmware, FirmwareUploadMethods method, CancellationToken token = default, IProgress<float>? progress = default)
+        public ChipTypeDetectTool GetChipDetectTool(ILoader loader)
         {
-            if (_loader == null)
-                throw new Exception("No loader available, start loader first");
-
-            // Detect chip type
-            var chipType = await DetectChipTypeAsync(token);
-
-            // Upload the softstarter
-            var uploadConfig = GetFirmwareUploadConfig(chipType, method, false);
-            FirmwareUploadTool firmwareSender = new FirmwareUploadTool(_loader, uploadConfig);
-            firmwareSender.Progress = progress ?? new Progress<float>();
-            await firmwareSender.UploadFirmwareAsync(firmware, token);
+            return new ChipTypeDetectTool(loader, _config);
         }
 
-        public async Task UploadFirmwareAndExecuteAsync(IFirmwareProvider firmware, FirmwareUploadMethods method, CancellationToken token = default, IProgress<float>? progress = default)
+        public UploadRamTool GetUploadRamTool(ILoader loader, ChipTypes chipType)
         {
-            if (_loader == null)
-                throw new Exception("No loader available, start loader first");
-
-            // Detect chip type
-            var chipType = await DetectChipTypeAsync(token);
-
-            // Upload the softstarter
-            var uploadConfig = GetFirmwareUploadConfig(chipType, method, true);
-            FirmwareUploadTool firmwareSender = new FirmwareUploadTool(_loader, uploadConfig);
-            firmwareSender.Progress = progress ?? new Progress<float>();
-            await firmwareSender.UploadFirmwareAsync(firmware, token);
-        }
-
-        public async Task<ChipTypes> DetectChipTypeAsync(CancellationToken token = default)
-        {
-            if (_loader == null)
-                throw new Exception("No loader available, start loader first");
-            ChipTypeDetectTool chipTypeDetector = new ChipTypeDetectTool(_loader, _config);
-            return await chipTypeDetector.DetectChipTypeAsync(token);
-        }
-
-        public async Task ResetDeviceAsync(CancellationToken token = default)
-        {
-            var bootloaderSequence = _config.ResetSequence ?? throw new Exception("Config error, no reset sequence found");
-            await _communicator.ExecutePinSequence(bootloaderSequence, token);
-        }
-
-        public async Task ChangeBaudAsync(int baud, CancellationToken token)
-        {
-            var oldBaud = _communicator.GetBaudRate();
-            if (baud == oldBaud)
-                return;
-            if (_loader == null)
-                throw new Exception("No loader available, start loader first");
-            ChangeBaudrateTool changeBaudrateTool = new ChangeBaudrateTool(_loader);
-            await changeBaudrateTool.ChangeBaudAsync(baud, oldBaud, token);
-            _communicator.ChangeBaudRate(baud);
-        }
-
-
-
-        private FirmwareUploadConfig GetFirmwareUploadConfig(ChipTypes chipType, FirmwareUploadMethods uploadMethod, bool execute)
-        {
-            // Find device information
-            var deviceInfo = _config.Devices.FirstOrDefault(fw => fw.ChipType == chipType) ?? throw new Exception($"No deviceconfig found for '{chipType}'");
-            return new FirmwareUploadConfig
-            {
-                BlockSize = uploadMethod == FirmwareUploadMethods.Ram ? (uint)deviceInfo.RamBlockSize : (uint)deviceInfo.FlashBlockSize,
-                ExecuteAfterSending = execute,
-                UploadMethod = uploadMethod
+            var deviceConfig = _config.Devices.FirstOrDefault(deviceConfig => deviceConfig.ChipType == chipType) ?? throw new Exception($"No config found for device {chipType}");
+            var tool = new UploadRamTool(loader) {
+                BlockSize = (UInt32)deviceConfig.FlashBlockSize
             };
+            return tool;
+        }
+
+        public UploadFlashTool GetUploadFlashTool(ILoader loader, ChipTypes chipType)
+        {
+            var deviceConfig = _config.Devices.FirstOrDefault(deviceConfig => deviceConfig.ChipType == chipType) ?? throw new Exception($"No config found for device {chipType}");
+            var tool = new UploadFlashTool(loader) {
+                BlockSize = (UInt32)deviceConfig.FlashBlockSize
+            };
+            return tool;
+        }
+
+        public UploadFlashDeflatedTool GetUploadFlashDeflatedTool(SoftLoader loader, ChipTypes chipType)
+        {
+            var deviceConfig = _config.Devices.FirstOrDefault(deviceConfig => deviceConfig.ChipType == chipType) ?? throw new Exception($"No config found for device {chipType}");
+            var tool = new UploadFlashDeflatedTool(loader) {
+                BlockSize = (UInt32)deviceConfig.FlashBlockSize
+            };
+            return tool;
+        }
+
+        public FirmwareUploadTool GetFirmwareUploadTool(IUploadTool uploadTool)
+        {
+            return new FirmwareUploadTool(uploadTool);
+        }
+
+        public ChangeBaudrateTool GetChangeBaudrateTool(ILoader loader)
+        {
+            return new ChangeBaudrateTool(_communicator, loader);
+        }
+
+        public FlashEraseTool GetFlashEraseTool(SoftLoader loader)
+        {
+            return new FlashEraseTool(loader);
         }
     }
 }

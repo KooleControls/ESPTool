@@ -3,7 +3,7 @@
     {
       "Dtr": false,
       "Rts": true,
-      "Delay": "00:00:00.100"
+      "Delay": "00:00:00.500"
     },
     {
       "Dtr": true,
@@ -13,7 +13,7 @@
     {
       "Dtr": false,
       "Rts": false,
-      "Delay": "00:00:00.100"
+      "Delay": "00:00:00.000"
     }
   ],
   "ResetSequence": [

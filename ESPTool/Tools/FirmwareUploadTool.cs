@@ -1,6 +1,7 @@
 ﻿using EspDotNet.Loaders;
 using EspDotNet.Tools.Firmware;
 using EspDotNet.Utils;
+using System;
 
 namespace EspDotNet.Tools
 {
@@ -8,139 +9,59 @@ namespace EspDotNet.Tools
     {
         public IProgress<float> Progress { get; set; } = new Progress<float>();
 
-        private readonly ILoader _loader;
-        private readonly FirmwareUploadConfig _config;
+        private readonly IUploadTool _uploadTool;
 
-        public FirmwareUploadTool(ILoader loader)
+        public FirmwareUploadTool(IUploadTool uploadTool)
         {
-            _loader = loader;
-            _config = new FirmwareUploadConfig();
+            _uploadTool = uploadTool;
         }
 
-        public FirmwareUploadTool(ILoader loader, FirmwareUploadConfig config)
+        public Task UploadFirmwareAsync(IFirmwareProvider firmwareProvider, CancellationToken token)
         {
-            _loader = loader;
-            _config = config;
+            return ProcessSegmentsAsync(firmwareProvider, executeOnLast: false, token);
         }
 
-        public async Task UploadFirmwareAsync(IFirmwareProvider firmwareProvider, CancellationToken token)
+        public Task UploadFirmwareAndExecuteAsync(IFirmwareProvider firmwareProvider, CancellationToken token)
+        {
+            return ProcessSegmentsAsync(firmwareProvider, executeOnLast: true, token);
+        }
+
+        private async Task ProcessSegmentsAsync(IFirmwareProvider firmwareProvider, bool executeOnLast, CancellationToken token)
         {
             Progress.Report(0);
-            var totalSize = firmwareProvider.Segments.Sum(s => s.Size);
-            float progress = 0;
+            var segments = firmwareProvider.Segments.ToList();
+            var totalSize = segments.Sum(s => s.Size);
+            float progressAccumulated = 0;
 
-            foreach (var segment in firmwareProvider.Segments)
+            for (int i = 0; i < segments.Count; i++)
             {
-                float segmentWeight = (float)segment.Size / totalSize; // Fractional contribution of this segment
+                var segment = segments[i];
+                var dataStream = await segment.GetStreamAsync(token);
+                var offset = segment.Offset;
+                var size = segment.Size;
+                float segmentWeight = (float)size / totalSize; // Fractional contribution of this segment
 
-                Action<float> reportProgress = (p) =>
+                // Update the upload tool's progress handler for the current segment.
+                _uploadTool.Progress = new Progress<float>(p =>
                 {
                     float segmentProgress = p * segmentWeight;
-                    Progress.Report(segmentProgress + progress); // Report overall fraction 0-1
-                };
+                    Progress.Report(segmentProgress + progressAccumulated);
+                });
 
-                await UploadSegment(segment, _config.BlockSize, token, new Progress<float>(reportProgress));
-                progress += segmentWeight;
+                bool isLastSegment = (i == segments.Count - 1);
+                if (executeOnLast && isLastSegment)
+                {
+                    await _uploadTool.UploadAndExecute(dataStream, offset, size, firmwareProvider.EntryPoint, token);
+                }
+                else
+                {
+                    await _uploadTool.Upload(dataStream, offset, size, token);
+                }
+
+                progressAccumulated += segmentWeight;
             }
-
-            // End memory transfer
-            uint execute = (uint)(_config.ExecuteAfterSending ? 0 : 1);
-            await SendEndAsync(execute, firmwareProvider.EntryPoint, token);
             Progress.Report(1);
         }
-
-
-        private async Task UploadSegment(IFirmwareSegmentProvider segmentProvider, uint blockSize, CancellationToken token, IProgress<float> progress)
-        {
-            Stream data = await segmentProvider.GetStreamAsync(token);
-            uint size = segmentProvider.Size;
-            // Compress data if needed
-            if (_config.UploadMethod == FirmwareUploadMethods.FlashDeflated)
-            {
-                data = new MemoryStream();
-                ZlibCompressionHelper.CompressToZlibStream(await segmentProvider.GetStreamAsync(token), data);
-                data.Position = 0;
-                size = (uint)data.Length;
-            }
-
-            uint blocks = (size + blockSize - 1) / blockSize;
-            uint offset = segmentProvider.Offset;
-
-            // Begin memory transfer
-            await SendBeginAsync(size, blocks, offset, blockSize, token);
-
-            // Send data in blocks
-            for (uint i = 0; i < blocks; i++)
-            {
-                uint srcInd = i * blockSize;
-                uint len = size - srcInd;
-                if (len > blockSize)
-                    len = blockSize;
-
-                byte[] buffer = new byte[len];
-                int bytesRead = await data.ReadAsync(buffer, 0, (int)len, token);
-                if (bytesRead != len)
-                    break;
-
-                await SendBlockAsync(buffer, i, token);
-                progress.Report((float)(i + 1) / blocks); // Report 0-1 per segment
-            }
-        }
-
-        private async Task SendBeginAsync(uint size, uint blocks, uint offset, uint blockSize, CancellationToken token)
-        {
-            switch (_config.UploadMethod)
-            {
-                case FirmwareUploadMethods.Flash:
-                    await _loader.FlashBeginAsync(size, blocks, blockSize, offset, token);
-                    break;
-                case FirmwareUploadMethods.FlashDeflated:
-                    await _loader.FlashDeflBeginAsync(size, blocks, blockSize, offset, token);
-                    break;
-                case FirmwareUploadMethods.Ram:
-                    await _loader.MemBeginAsync(size, blocks, blockSize, offset, token);
-                    break;
-                default: throw new Exception();
-            }
-        }
-
-
-        private async Task SendBlockAsync(byte[] block, uint blockNo, CancellationToken token)
-        {
-            switch (_config.UploadMethod)
-            {
-                case FirmwareUploadMethods.Flash:
-                    await _loader.FlashDataAsync(block, blockNo, token);
-                    break;
-                case FirmwareUploadMethods.FlashDeflated:
-                    await _loader.FlashDeflDataAsync(block, blockNo, token);
-                    break;
-                case FirmwareUploadMethods.Ram:
-                    await _loader.MemDataAsync(block, blockNo, token);
-                    break;
-                default: throw new Exception();
-            }
-        }
-
-        private async Task SendEndAsync(uint execute, uint entryPoint, CancellationToken token)
-        {
-            switch (_config.UploadMethod)
-            {
-                case FirmwareUploadMethods.Flash:
-                    await _loader.FlashEndAsync(execute, entryPoint, token);
-                    break;
-                case FirmwareUploadMethods.FlashDeflated:
-                    await _loader.FlashDeflEndAsync(execute, entryPoint, token);
-                    break;
-                case FirmwareUploadMethods.Ram:
-                    await _loader.MemEndAsync(execute, entryPoint, token);
-                    break;
-                default: throw new Exception();
-            }
-        }
     }
-
-
-
 
 }

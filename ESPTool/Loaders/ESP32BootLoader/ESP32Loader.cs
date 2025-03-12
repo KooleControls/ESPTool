@@ -22,7 +22,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Begins the flash process.
         /// </summary>
-        public virtual async Task FlashBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
+        public async Task FlashBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x02)
@@ -40,7 +40,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Sends flash data.
         /// </summary>
-        public virtual async Task FlashDataAsync(byte[] blockData, uint seq, CancellationToken token)
+        public async Task FlashDataAsync(byte[] blockData, uint seq, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x03)
@@ -60,7 +60,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Ends the flash process.
         /// </summary>
-        public virtual async Task FlashEndAsync(uint execute, uint entryPoint, CancellationToken token)
+        public async Task FlashEndAsync(uint execute, uint entryPoint, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x04)
@@ -77,7 +77,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Begins memory upload.
         /// </summary>
-        public virtual async Task MemBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
+        public async Task MemBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x05)
@@ -95,7 +95,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Ends memory upload.
         /// </summary>
-        public virtual async Task MemEndAsync(uint execute, uint entryPoint, CancellationToken token)
+        public async Task MemEndAsync(uint execute, uint entryPoint, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x06)
@@ -111,7 +111,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Sends memory data.
         /// </summary>
-        public virtual async Task MemDataAsync(byte[] blockData, uint seq, CancellationToken token)
+        public async Task MemDataAsync(byte[] blockData, uint seq, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x07)
@@ -131,7 +131,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <summary>
         /// Synchronizes with the loader.
         /// </summary>
-        public virtual async Task SyncAsync(CancellationToken token)
+        public async Task<bool> SynchronizeAsync(CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0x08)
@@ -139,11 +139,10 @@ namespace EspDotNet.Loaders.ESP32BootLoader
                 .Build();
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
-            if (response.Success != true)
-                throw new Exception($"Synchronisation failed {response.Error}");
+            return response.Success;
         }
 
-        public virtual async Task<uint> ReadRegisterAsync(uint address, CancellationToken token)
+        public async Task<uint> ReadRegisterAsync(uint address, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                .WithCommand(0x0a)
@@ -175,61 +174,6 @@ namespace EspDotNet.Loaders.ESP32BootLoader
             if (response?.Success != true)
                 throw new InvalidOperationException("Failed to change baud rate.");
         }
-
-        public Task EraseFlashAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task FlashDeflBeginAsync(uint size, uint blocks, uint blockSize, uint offset, CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task FlashDeflDataAsync(byte[] blockData, uint seq, CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task FlashDeflEndAsync(uint executeFlags, uint entryPoint, CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Synchronizes with the bootloader.
-        /// </summary>
-        public async Task<bool> Synchronize(CancellationToken token)
-        {
-            for (int tryNo = 0; tryNo < 100; tryNo++)
-            {
-                token.ThrowIfCancellationRequested();
-
-                // Try to sync for 100ms.
-                using CancellationTokenSource cts = new CancellationTokenSource();
-
-                // Register the token and store the registration to dispose of it later
-                using CancellationTokenRegistration ctr = token.Register(() => cts.Cancel());
-
-                cts.CancelAfter(100); // Cancel after 100ms
-
-                try
-                {
-                    await SyncAsync(cts.Token);
-                    return true;
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
-                    ctr.Unregister();
-                }
-            }
-
-            return false;
-        }
-
     }
 }
 
