@@ -1,0 +1,6 @@
+{
+  "ChipType": "ESP32c3",
+  "FlashBlockSize": 1024,
+  "RamBlockSize": 6144
+}
+

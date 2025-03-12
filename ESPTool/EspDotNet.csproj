@@ -15,6 +15,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Tools\GetAddressesTool.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Resources\Config\Devices\ESP32.json" />
+	  <None Remove="Resources\Config\Devices\ESP32C3.json" />
+	  <None Remove="Resources\Config\Devices\ESP32H2.json" />
+	  <None Remove="Resources\Config\Devices\ESP32S2.json" />
+	  <None Remove="Resources\Config\Devices\ESP32S3.json" />
+	  <None Remove="Resources\Config\Devices\ESP8266.json" />
 	  <None Remove="Resources\stub\stub_flasher_32.json" />
 	  <None Remove="Resources\stub\stub_flasher_32c2.json" />
 	  <None Remove="Resources\stub\stub_flasher_32c3.json" />
@@ -31,6 +41,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Resources\Config\Devices\ESP32.json" />
+	  <EmbeddedResource Include="Resources\Config\Devices\ESP32C3.json" />
+	  <EmbeddedResource Include="Resources\Config\Devices\ESP32H2.json" />
+	  <EmbeddedResource Include="Resources\Config\Devices\ESP32S2.json" />
+	  <EmbeddedResource Include="Resources\Config\Devices\ESP32S3.json" />
+	  <EmbeddedResource Include="Resources\Config\Devices\ESP8266.json" />
+	  <EmbeddedResource Include="Resources\Config\ESPToolConfig.json" />
 	  <EmbeddedResource Include="Resources\stub\stub_flasher_32.json" />
 	  <EmbeddedResource Include="Resources\stub\stub_flasher_32c2.json" />
 	  <EmbeddedResource Include="Resources\stub\stub_flasher_32c3.json" />
@@ -50,5 +67,6 @@
 		<PackageReference Include="System.IO.Ports" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <None Include="..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="Tools\GetAddressesTool.cs" />
 	</ItemGroup>
 </Project>

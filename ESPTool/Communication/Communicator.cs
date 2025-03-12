@@ -104,9 +104,9 @@ namespace EspDotNet.Communication
             return await _slipFraming.ReadFrameAsync(token);
         }
 
-        public async Task ExecutePinSequence(PinSequence sequence, CancellationToken token)
+        public async Task ExecutePinSequence(List<PinSequenceStep> sequence, CancellationToken token)
         {
-            foreach (var step in sequence.Steps)
+            foreach (var step in sequence)
             {
                 _serialPort.DtrEnable = step.Dtr;
                 _serialPort.RtsEnable = step.Rts;

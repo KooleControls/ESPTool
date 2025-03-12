@@ -1,10 +1,8 @@
-﻿using EspDotNet.Loaders;
-
-namespace EspDotNet.Tools
+﻿namespace EspDotNet.Tools
 {
 
-  public class GetAddressesTool
-  {
+    public class GetAddressesTool
+    {
 
         private readonly ILoader _loader;
 
@@ -131,5 +129,5 @@ namespace EspDotNet.Tools
             }
             return result.ToString();
         }
-  }
+    }
 }

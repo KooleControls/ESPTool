@@ -1,0 +1,6 @@
+{
+  "ChipType": "ESP32h2",
+  "FlashBlockSize": 1024,
+  "RamBlockSize": 6144
+}
+
