@@ -2,6 +2,16 @@
   "ChipType": "ESP32s3",
   "FlashBlockSize": 1024,
   "RamBlockSize": 6144,
-  "MagicRegisterValue": 9
+  "MagicRegisterValue": 9,
+    "EFlags": {
+        "BaseMacAddress": {
+            "Address": 1610641476,
+            "Size": 6
+        },
+        "OUIAddress": {
+            "Address": 1610641480,
+            "Size":  4
+        }
+    }
 }
 
