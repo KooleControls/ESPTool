@@ -108,8 +108,16 @@ namespace EspDotNet.Communication
         {
             foreach (var step in sequence)
             {
-                _serialPort.DtrEnable = step.Dtr;
-                _serialPort.RtsEnable = step.Rts;
+                if (step.Dtr != null)
+                    _serialPort.DtrEnable = step.Dtr.Value;
+
+                if (step.Rts != null)
+                {
+                    _serialPort.RtsEnable = step.Rts.Value;
+                    if (OperatingSystem.IsWindows())
+                        _serialPort.DtrEnable = _serialPort.DtrEnable;
+                }
+
                 await Task.Delay(step.Delay, token);
             }
         }
