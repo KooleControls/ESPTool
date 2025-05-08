@@ -18,39 +18,26 @@ namespace EspDotNet.Loaders.ESP32BootLoader
         /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the token.</exception>
         public async Task<ResponseCommand> ExecuteCommandAsync(RequestCommand requestCommand, CancellationToken token)
         {
-            try
+            _communicator.ClearBuffer();
+
+            // Convert the RequestCommand to a Frame
+            Frame requestFrame = RequestToFrame(requestCommand);
+
+            // Write the frame to the communicator
+            await _communicator.WriteFrameAsync(requestFrame, token);
+
+            // Read the response frame
+            Frame responseFrame = await _communicator.ReadFrameAsync(token) ?? throw new Exception("No frame received");
+
+            // Convert the response frame back to a ResponseCommand
+            var response = FrameToResponse(responseFrame);
+
+            // Check
+            if (response.Command != requestCommand.Command)
             {
-                _communicator.ClearBuffer();
-
-                // Convert the RequestCommand to a Frame
-                Frame requestFrame = RequestToFrame(requestCommand);
-
-                // Write the frame to the communicator
-                await _communicator.WriteFrameAsync(requestFrame, token);
-
-                // Read the response frame
-                Frame responseFrame = await _communicator.ReadFrameAsync(token) ?? throw new Exception("No frame received");
-
-                // Convert the response frame back to a ResponseCommand
-                var response = FrameToResponse(responseFrame);
-
-                // Check
-                if (response.Command != requestCommand.Command)
-                {
-                    throw new Exception("Response didnt match");
-                }
-                return response;
-
+                throw new Exception("Response didnt match");
             }
-
-            catch (OperationCanceledException)
-            {
-                throw new OperationCanceledException("Frame operation was canceled.", token);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to send or receive frame.", ex);
-            }
+            return response;
         }
 
         private static Frame RequestToFrame(RequestCommand command)
