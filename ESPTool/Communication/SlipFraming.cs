@@ -70,14 +70,11 @@ namespace EspDotNet.Communication
                 {
                     if (startFound)
                     {
-                        //Debug.WriteLine($"EOF");
-                        // End of the frame found, decode it
-                        Frame? frame = Decode(buffer.ToArray());
-                        if (frame?.Data?.Length == 0)
-                            throw new Exception("Empty frame");
-                        else
-                            return frame;
+                        // End of the frame
+                        if (buffer.Count == 0)
+                            continue;
 
+                        return Decode(buffer.ToArray());
                     }
                     else
                     {
