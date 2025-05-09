@@ -1,7 +1,10 @@
 ﻿using EspDotNet.Config;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.IO.Ports;
+using System.Text.RegularExpressions;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -121,6 +124,12 @@ namespace EspDotNet.Communication
                 await Task.Delay(step.Delay, token);
             }
         }
+
+        public async Task<int> ReadRawAsync(byte[] buffer, CancellationToken token)
+        {
+            return await _serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length, token);
+        }
+
 
         /// <summary>
         /// Disposes the serial port and associated resources.
