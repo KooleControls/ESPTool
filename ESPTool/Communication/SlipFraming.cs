@@ -9,13 +9,17 @@ using System.Threading.Tasks;
 
 namespace EspDotNet.Communication
 {
+    /*  In slipframing, the following rules apply:
+     *  0xC0 => 0xDB 0xDC
+     *  0xDC => 0xDB 0xDD
+     */
+
     public class SlipFraming
     {
         private const byte FrameDelimiter = 0xC0;
         private const byte EscapeByte = 0xDB;
-        private const byte EscapeFrameDelimiter = 0xDC;
+        private const byte EscapeFrameDelimiter = 0xDC; 
         private const byte EscapeEscapeByte = 0xDD;
-
         private readonly SerialPort _serialPort;
 
         public SlipFraming(SerialPort serialPort)
@@ -23,115 +27,76 @@ namespace EspDotNet.Communication
             _serialPort = serialPort;
         }
 
-        /// <summary>
-        /// Writes a SLIP-encoded frame asynchronously to the stream.
-        /// </summary>
-        /// <param name="frame">The frame to be written to the stream.</param>
-        /// <param name="token">Cancellation token to cancel the operation.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the cancellation token.</exception>
-        /// <exception cref="IOException">Thrown if an I/O error occurs during writing.</exception>
         public async Task WriteFrameAsync(Frame frame, CancellationToken token)
         {
-            byte[] encodedFrame = Encode(frame);
-            //Debug.Write($"(TX) ");
-            //foreach(var b in encodedFrame)
-            //    Debug.Write($"{b:X2} ");
-            //Debug.WriteLine($"");
-            await _serialPort.BaseStream.WriteAsync(encodedFrame, 0, encodedFrame.Length, token);
+            byte[] escapedFrame = EscapeFrame(frame);
+            _serialPort.BaseStream.WriteByte(FrameDelimiter); // Start of frame
+            await _serialPort.BaseStream.WriteAsync(escapedFrame, 0, escapedFrame.Length, token);
+            _serialPort.BaseStream.WriteByte(FrameDelimiter); // end of frame
             await _serialPort.BaseStream.FlushAsync(token); // Ensure all data is sent
         }
 
-        /// <summary>
-        /// Reads and decodes a SLIP-encoded frame asynchronously from the stream.
-        /// Reads until the end of the frame is received.
-        /// </summary>
-        /// <param name="token">Cancellation token to cancel the operation.</param>
-        /// <returns>The decoded frame, or null if the end of the stream is reached.</returns>
-        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the cancellation token.</exception>
-        /// <exception cref="IOException">Thrown if an I/O error occurs during reading.</exception>
         public async Task<Frame?> ReadFrameAsync(CancellationToken token)
         {
-            List<byte> buffer = new List<byte>();
-            bool startFound = false;
+            List<byte> escapedFrameBuffer = new List<byte>();
 
+            // In slipframing, all delimiters are replaced, so we can record everything between delimeters and decode it later
             while (true)
             {
-                // Wait for data
-                while (_serialPort.BytesToRead == 0)
-                {
-                    // Prevent busy waiting
-                    await Task.Delay(10, token);
-                }
-
-                byte currentByte = (byte)_serialPort.ReadByte();
+                byte currentByte = await ReadByte(token);
 
                 if (currentByte == FrameDelimiter)
                 {
-                    if (startFound)
-                    {
-                        // End of the frame
-                        if (buffer.Count == 0)
-                            continue;
-
-                        return Decode(buffer.ToArray());
-                    }
-                    else
-                    {
-                        // Start of the frame
-                        startFound = true;
-                        buffer.Clear();
-                        //Debug.Write($"(RX) SOF ");
-                    }
+                    // If we havent recieved any data yet, this is the SOF
+                    if (escapedFrameBuffer.Count > 0)
+                        return Unescape(escapedFrameBuffer.ToArray());
                 }
-                else if (startFound)
+                else
                 {
-                    // Add byte to the buffer
-                    buffer.Add(currentByte);
-                    //Debug.Write($"{currentByte:X2} ");
+                    escapedFrameBuffer.Add(currentByte);
                 }
             }
         }
 
-        /// <summary>
-        /// Encodes the frame into SLIP format.
-        /// </summary>
-        /// <param name="frame">The frame to encode.</param>
-        /// <returns>A byte array containing the SLIP-encoded frame.</returns>
-        private byte[] Encode(Frame frame)
+        private async Task<byte> ReadByte(CancellationToken token)
         {
-            List<byte> encoded = new List<byte> { FrameDelimiter };
+            // Wait for data
+            while (_serialPort.BytesToRead == 0)
+            {
+                // Prevent busy waiting
+                await Task.Delay(10, token);
+            }
+
+            return (byte)_serialPort.ReadByte();
+        }
+
+        private byte[] EscapeFrame(Frame frame)
+        {
+            List<byte> buffer = new();
 
             foreach (byte b in frame.Data)
             {
                 if (b == FrameDelimiter)
                 {
-                    encoded.Add(EscapeByte);
-                    encoded.Add(EscapeFrameDelimiter);
+                    buffer.Add(EscapeByte);
+                    buffer.Add(EscapeFrameDelimiter);
                 }
                 else if (b == EscapeByte)
                 {
-                    encoded.Add(EscapeByte);
-                    encoded.Add(EscapeEscapeByte);
+                    buffer.Add(EscapeByte);
+                    buffer.Add(EscapeEscapeByte);
                 }
                 else
                 {
-                    encoded.Add(b);
+                    buffer.Add(b);
                 }
             }
-
-            encoded.Add(FrameDelimiter);
-            return encoded.ToArray();
+            return buffer.ToArray();
         }
 
-        /// <summary>
-        /// Decodes the SLIP-encoded data into a Frame.
-        /// </summary>
-        /// <param name="data">The SLIP-encoded byte array.</param>
-        /// <returns>The decoded frame.</returns>
-        private Frame? Decode(byte[] data)
+        private Frame? Unescape(byte[] data)
         {
-            List<byte> decoded = new List<byte>();
+            List<byte> buffer = new List<byte>();
 
             for (int i = 0; i < data.Length; i++)
             {
@@ -142,20 +107,20 @@ namespace EspDotNet.Communication
 
                     if (data[i] == EscapeFrameDelimiter)
                     {
-                        decoded.Add(FrameDelimiter);
+                        buffer.Add(FrameDelimiter);
                     }
                     else if (data[i] == EscapeEscapeByte)
                     {
-                        decoded.Add(EscapeByte);
+                        buffer.Add(EscapeByte);
                     }
                 }
                 else
                 {
-                    decoded.Add(data[i]);
+                    buffer.Add(data[i]);
                 }
             }
 
-            return new Frame(decoded.ToArray());
+            return new Frame(buffer.ToArray());
         }
     }
 }
