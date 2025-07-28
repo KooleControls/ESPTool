@@ -3,6 +3,7 @@ using EspDotNet;
 using System.Diagnostics;
 using System.Threading;
 using System;
+using System.IO;
 
 public class Example
 {
@@ -42,12 +43,26 @@ public class Example
         var readTool = toolbox.CreateReadFlashTool(softloader, communicator, chipType);
         var progress = new Progress<float>(p => Debug.WriteLine($"Read progress: {p:P0}"));
 
-        // Read 4KB from flash starting at address 0x1000
-        var flashData = await toolbox.ReadFlashAsync(readTool, 0x1000, 4096, token, progress);
-        Debug.WriteLine($"Read {flashData.Length} bytes from flash");
+        // Option 1: Read directly to a file using a FileStream
+        using (var fileStream = new FileStream("flash_dump.bin", FileMode.Create, FileAccess.Write))
+        {
+            await toolbox.ReadFlashAsync(readTool, 0x1000, 4096, fileStream, token, progress);
+        }
 
-        // Or read directly to a file
-        await readTool.ReadFlashToFileAsync(0x1000, 4096, "flash_dump.bin", token);
+        // Option 2: Read to memory using a MemoryStream
+        using (var memoryStream = new MemoryStream())
+        {
+            await toolbox.ReadFlashAsync(readTool, 0x1000, 4096, memoryStream, token, progress);
+            var flashData = memoryStream.ToArray();
+            Debug.WriteLine($"Read {flashData.Length} bytes from flash");
+        }
+
+        // Option 3: Use convenience method for in-memory reading (backwards compatibility)
+        var flashData2 = await toolbox.ReadFlashAsync(readTool, 0x1000, 4096, token, progress);
+        Debug.WriteLine($"Read {flashData2.Length} bytes from flash");
+
+        // Option 4: Use convenience method for file writing (backwards compatibility)
+        await toolbox.ReadFlashToFileAsync(readTool, 0x1000, 4096, "flash_dump2.bin", token, progress);
     }
 
 
