@@ -40,7 +40,7 @@ public class Example
         var softloader = await toolbox.StartSoftloaderAsync(communicator, loader, chipType);
         await toolbox.ChangeBaudAsync(communicator, softloader, 921600);
 
-        var readTool = toolbox.CreateReadFlashTool(softloader, communicator, chipType);
+        var readTool = toolbox.CreateReadFlashTool(communicator, softloader, chipType);
         var progress = new Progress<float>(p => Debug.WriteLine($"Read progress: {p:P0}"));
 
         // Option 1: Read directly to a file using a FileStream
