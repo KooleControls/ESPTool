@@ -90,6 +90,27 @@ namespace EspDotNet
             return await tool.ReadAsync(key, token);
         }
 
+        public ReadFlashTool CreateReadFlashTool(SoftLoader softLoader, Communicator communicator, ChipTypes chipType)
+        {
+            var deviceConfig = GetDeviceConfig(chipType);
+            return new ReadFlashTool(softLoader, communicator)
+            {
+                SectorSize = (uint)deviceConfig.FlashBlockSize,
+                BlockSize = 64 // Default read block size
+            };
+        }
+
+        public async Task<byte[]> ReadFlashAsync(
+            ReadFlashTool readTool,
+            uint address,
+            uint size,
+            CancellationToken token = default,
+            IProgress<float>? progress = null)
+        {
+            readTool.Progress = progress ?? new Progress<float>();
+            return await readTool.ReadFlashAsync(address, size, token);
+        }
+
         public IUploadTool CreateUploadRamTool(ILoader loader, ChipTypes chipType)
         {
             return new UploadRamTool(loader)

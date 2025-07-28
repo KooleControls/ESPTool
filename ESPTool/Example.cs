@@ -27,6 +27,29 @@ public class Example
         await toolbox.ResetDeviceAsync(communicator);
     }
 
+    public async Task ReadFlashAsync(CancellationToken token = default)
+    {
+        var toolbox = new ESPToolbox();
+        var communicator = toolbox.CreateCommunicator();
+        toolbox.OpenSerial(communicator, "COM30", 115200);
+
+        var loader = await toolbox.StartBootloaderAsync(communicator);
+        var chipType = await toolbox.DetectChipTypeAsync(loader);
+
+        var softloader = await toolbox.StartSoftloaderAsync(communicator, loader, chipType);
+        await toolbox.ChangeBaudAsync(communicator, softloader, 921600);
+
+        var readTool = toolbox.CreateReadFlashTool(softloader, communicator, chipType);
+        var progress = new Progress<float>(p => Debug.WriteLine($"Read progress: {p:P0}"));
+
+        // Read 4KB from flash starting at address 0x1000
+        var flashData = await toolbox.ReadFlashAsync(readTool, 0x1000, 4096, token, progress);
+        Debug.WriteLine($"Read {flashData.Length} bytes from flash");
+
+        // Or read directly to a file
+        await readTool.ReadFlashToFileAsync(0x1000, 4096, "flash_dump.bin", token);
+    }
+
 
     private IFirmwareProvider GetFirmware()
     {
