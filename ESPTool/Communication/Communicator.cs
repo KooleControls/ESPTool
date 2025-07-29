@@ -130,6 +130,18 @@ namespace EspDotNet.Communication
             return await _serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length, token);
         }
 
+        /// <summary>
+        /// Writes raw data asynchronously to the serial port.
+        /// </summary>
+        /// <param name="data">The data to write.</param>
+        /// <param name="token">Cancellation token to cancel the operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the cancellation token.</exception>
+        public async Task WriteAsync(byte[] data, CancellationToken token)
+        {
+            await _serialPort.BaseStream.WriteAsync(data, 0, data.Length, token);
+        }
+
 
         /// <summary>
         /// Disposes the serial port and associated resources.
@@ -141,6 +153,11 @@ namespace EspDotNet.Communication
                 _serialPort.Close();
             }
             _serialPort.Dispose();
+        }
+
+        internal async Task FlushAsync(CancellationToken token)
+        {
+            await _serialPort.BaseStream.FlushAsync(token);
         }
     }
 }

@@ -90,6 +90,12 @@ namespace EspDotNet
             return await tool.ReadAsync(key, token);
         }
 
+        public ReadFlashTool CreateReadFlashTool(Communicator communicator, SoftLoader softLoader, ChipTypes chipType)
+        {
+            var deviceConfig = GetDeviceConfig(chipType);
+            return new ReadFlashTool(softLoader, communicator);
+        }
+
         public IUploadTool CreateUploadRamTool(ILoader loader, ChipTypes chipType)
         {
             return new UploadRamTool(loader)

@@ -1,9 +1,6 @@
 ﻿using EspDotNet.Commands;
 using EspDotNet.Communication;
-using EspDotNet.Loaders;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace EspDotNet.Loaders.SoftLoader
 {
@@ -58,6 +55,29 @@ namespace EspDotNet.Loaders.SoftLoader
                 throw new InvalidOperationException("Failed to compute MD5 checksum.");
 
             return response.Payload.Take(16).ToArray(); // Return the MD5 checksum (first 16 bytes)
+        }
+
+        public async Task FlashReadBeginAsync(uint address, uint size, uint blockSize, uint inflight, CancellationToken token)
+        {
+            var request = new RequestCommandBuilder()
+                .WithCommand(0xD2)
+                .AppendPayload(BitConverter.GetBytes(address))
+                .AppendPayload(BitConverter.GetBytes(size))
+                .AppendPayload(BitConverter.GetBytes(blockSize))
+                .AppendPayload(BitConverter.GetBytes(inflight))
+                .Build();
+
+
+            var response = await _commandExecutor.ExecuteCommandAsync(request, token);
+            if (!response.Success)
+                throw new InvalidOperationException("Failed to begin flash read.");
+        }
+
+        public async Task FlashReadAckAsync(uint totalBytesReceived, CancellationToken token)
+        {
+            var ackData = BitConverter.GetBytes(totalBytesReceived);
+            await _communicator.WriteFrameAsync(new Frame(ackData), token);
+            await _communicator.FlushAsync(token);
         }
 
         /// <summary>
