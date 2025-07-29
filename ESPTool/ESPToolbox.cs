@@ -93,60 +93,7 @@ namespace EspDotNet
         public ReadFlashTool CreateReadFlashTool(Communicator communicator, SoftLoader softLoader, ChipTypes chipType)
         {
             var deviceConfig = GetDeviceConfig(chipType);
-            return new ReadFlashTool(softLoader, communicator)
-            {
-                SectorSize = (uint)deviceConfig.FlashBlockSize,
-                BlockSize = 64 // Default read block size
-            };
-        }
-
-        public async Task ReadFlashAsync(
-            ReadFlashTool readTool,
-            uint address,
-            uint size,
-            Stream outputStream,
-            CancellationToken token = default,
-            IProgress<float>? progress = null)
-        {
-            readTool.Progress = progress ?? new Progress<float>();
-            await readTool.ReadFlashAsync(address, size, outputStream, token);
-        }
-
-        public async Task ReadFlashAsync(
-            ReadFlashTool readTool,
-            uint address,
-            uint size,
-            Stream outputStream,
-            bool verifyMd5,
-            CancellationToken token = default,
-            IProgress<float>? progress = null)
-        {
-            readTool.Progress = progress ?? new Progress<float>();
-            await readTool.ReadFlashAsync(address, size, outputStream, verifyMd5, token);
-        }
-
-        public async Task<byte[]> ReadFlashAsync(
-            ReadFlashTool readTool,
-            uint address,
-            uint size,
-            CancellationToken token = default,
-            IProgress<float>? progress = null)
-        {
-            using var memoryStream = new MemoryStream();
-            await ReadFlashAsync(readTool, address, size, memoryStream, token, progress);
-            return memoryStream.ToArray();
-        }
-
-        public async Task ReadFlashToFileAsync(
-            ReadFlashTool readTool,
-            uint address,
-            uint size,
-            string outputPath,
-            CancellationToken token = default,
-            IProgress<float>? progress = null)
-        {
-            using var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write);
-            await ReadFlashAsync(readTool, address, size, fileStream, token, progress);
+            return new ReadFlashTool(softLoader, communicator);
         }
 
         public IUploadTool CreateUploadRamTool(ILoader loader, ChipTypes chipType)

@@ -154,5 +154,10 @@ namespace EspDotNet.Communication
             }
             _serialPort.Dispose();
         }
+
+        internal async Task FlushAsync(CancellationToken token)
+        {
+            await _serialPort.BaseStream.FlushAsync(token);
+        }
     }
 }

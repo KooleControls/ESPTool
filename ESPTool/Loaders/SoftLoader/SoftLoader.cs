@@ -1,9 +1,6 @@
 ﻿using EspDotNet.Commands;
 using EspDotNet.Communication;
-using EspDotNet.Loaders;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace EspDotNet.Loaders.SoftLoader
 {
@@ -60,40 +57,27 @@ namespace EspDotNet.Loaders.SoftLoader
             return response.Payload.Take(16).ToArray(); // Return the MD5 checksum (first 16 bytes)
         }
 
-        /// <summary>
-        /// Begins reading from flash memory.
-        /// </summary>
-        /// <param name="address">The flash address to start reading from.</param>
-        /// <param name="size">The number of bytes to read.</param>
-        /// <param name="sectorSize">The flash sector size (typically 4096 bytes).</param>
-        /// <param name="blockSize">The read block size (typically 64 bytes).</param>
-        /// <param name="token">Cancellation token for the operation.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the token.</exception>
-        public async Task FlashReadBeginAsync(uint address, uint size, uint sectorSize, uint blockSize, CancellationToken token)
+        public async Task FlashReadBeginAsync(uint address, uint size, uint blockSize, uint inflight, CancellationToken token)
         {
             var request = new RequestCommandBuilder()
                 .WithCommand(0xD2)
                 .AppendPayload(BitConverter.GetBytes(address))
                 .AppendPayload(BitConverter.GetBytes(size))
-                .AppendPayload(BitConverter.GetBytes(sectorSize))
                 .AppendPayload(BitConverter.GetBytes(blockSize))
+                .AppendPayload(BitConverter.GetBytes(inflight))
                 .Build();
+
 
             var response = await _commandExecutor.ExecuteCommandAsync(request, token);
             if (!response.Success)
                 throw new InvalidOperationException("Failed to begin flash read.");
         }
 
-        /// <summary>
-        /// Sends an acknowledgment for flash read data transfer.
-        /// </summary>
-        /// <param name="bytesReceived">The number of bytes received so far.</param>
-        /// <param name="token">Cancellation token for the operation.</param>
-        /// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the token.</exception>
-        public async Task FlashReadAckAsync(uint bytesReceived, CancellationToken token)
+        public async Task FlashReadAckAsync(uint totalBytesReceived, CancellationToken token)
         {
-            var ackData = BitConverter.GetBytes(bytesReceived);
-            await _communicator.WriteAsync(ackData, token);
+            var ackData = BitConverter.GetBytes(totalBytesReceived);
+            await _communicator.WriteFrameAsync(new Frame(ackData), token);
+            await _communicator.FlushAsync(token);
         }
 
         /// <summary>
