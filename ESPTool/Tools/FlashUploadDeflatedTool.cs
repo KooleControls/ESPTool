@@ -1,4 +1,5 @@
-﻿using EspDotNet.Loaders;
+﻿using EspDotNet.Config;
+using EspDotNet.Loaders;
 using EspDotNet.Loaders.SoftLoader;
 using EspDotNet.Tools.Firmware;
 using EspDotNet.Utils;
@@ -6,15 +7,17 @@ using System;
 
 namespace EspDotNet.Tools
 {
-    public class UploadFlashDeflatedTool : IUploadTool
+    public class FlashUploadDeflatedTool : IUploadTool
     {
         public IProgress<float> Progress { get; set; } = new Progress<float>();
         public uint BlockSize { get; set; } = 1024;
         private readonly SoftLoader _loader;
+        private readonly DeviceConfig _deviceConfig;
 
-        public UploadFlashDeflatedTool(SoftLoader loader)
+        public FlashUploadDeflatedTool(SoftLoader loader, DeviceConfig deviceConfig)
         {
             _loader = loader;
+            _deviceConfig = deviceConfig;
         }
 
         public async Task Upload(Stream uncompressedStream, uint offset, uint unCompressedSize, CancellationToken token)

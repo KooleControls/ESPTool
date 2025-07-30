@@ -21,5 +21,12 @@ namespace EspDotNet.Tools
             var deviceConfig = _config.Devices.FirstOrDefault(device => device.MagicRegisterValue == id);
             return deviceConfig == null ? ChipTypes.Unknown : deviceConfig.ChipType;
         }
+
+        public async Task<DeviceConfig> DetectAndGetDeviceConfig(CancellationToken token)
+        {
+            var chip = await DetectChipTypeAsync(token);
+            return _config.Devices.FirstOrDefault(d => d.ChipType == chip)
+                ?? throw new InvalidOperationException($"No config available for {chip}");
+        }
     }
 }

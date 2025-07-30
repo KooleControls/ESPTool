@@ -1,5 +1,6 @@
 ﻿using EspDotNet.Communication;
 using EspDotNet.Config;
+using EspDotNet.Loaders;
 
 namespace EspDotNet.Tools
 {
@@ -19,5 +20,4 @@ namespace EspDotNet.Tools
             await _communicator.ExecutePinSequence(_resetDeviceSequence, token);
         }
     }
-
 }

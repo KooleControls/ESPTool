@@ -1,18 +1,21 @@
-﻿using EspDotNet.Loaders;
+﻿using EspDotNet.Config;
+using EspDotNet.Loaders;
 using EspDotNet.Tools.Firmware;
 using EspDotNet.Utils;
 
 namespace EspDotNet.Tools
 {
-    public class UploadFlashTool : IUploadTool
+    public class FlashUploadTool : IUploadTool
     {
         public IProgress<float> Progress { get; set; } = new Progress<float>();
         public uint BlockSize { get; set; } = 1024;
         private readonly ILoader _loader;
+        private readonly DeviceConfig _deviceConfig;
 
-        public UploadFlashTool(ILoader loader)
+        public FlashUploadTool(ILoader loader, DeviceConfig deviceConfig)
         {
             _loader = loader;
+            _deviceConfig = deviceConfig;
         }
 
         public async Task Upload(Stream data, uint offset, uint size, CancellationToken token)

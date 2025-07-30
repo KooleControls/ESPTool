@@ -1,31 +1,34 @@
-﻿using EspDotNet.Loaders;
+﻿using EspDotNet.Config;
+using EspDotNet.Loaders;
 using EspDotNet.Loaders.SoftLoader;
 using EspDotNet.Tools.Firmware;
 
 namespace EspDotNet.Tools
 {
-    public class UploadRamTool : IUploadTool
+    public class RamUploadTool : IUploadTool
     {
         public IProgress<float> Progress { get; set; } = new Progress<float>();
-        public uint BlockSize { get; set; } = 1024;
         private readonly ILoader _loader;
+        private readonly DeviceConfig _deviceConfig;
 
-        public UploadRamTool(ILoader loader)
+        public RamUploadTool(ILoader loader, DeviceConfig deviceConfig)
         {
             _loader = loader;
+            _deviceConfig = deviceConfig;
         }
 
         public async Task Upload(Stream data, uint offset, uint size, CancellationToken token)
         {
             // Calculate blocks
-            uint blocks = (size + BlockSize - 1) / BlockSize;
-            await _loader.MemBeginAsync(size, blocks, BlockSize, offset, token);
+            uint blockSize = (uint)_deviceConfig.FlashBlockSize;
+            uint blocks = (size + blockSize - 1) / blockSize;
+            await _loader.MemBeginAsync(size, blocks, blockSize, offset, token);
 
             // Send data
             for (uint i = 0; i < blocks; i++)
             {
-                uint srcIndex = i * BlockSize;
-                uint len = Math.Min(BlockSize, size - srcIndex);
+                uint srcIndex = i * blockSize;
+                uint len = Math.Min(blockSize, size - srcIndex);
 
                 byte[] buffer = new byte[len];
                 int bytesRead = await data.ReadAsync(buffer, 0, (int)len, token);

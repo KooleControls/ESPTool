@@ -35,7 +35,7 @@ namespace EspDotNet.Loaders.ESP32BootLoader
             // Check
             if (response.Command != requestCommand.Command)
             {
-                throw new Exception("Response didnt match");
+                throw new Exception("Response didn't match");
             }
             return response;
         }

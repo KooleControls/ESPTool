@@ -4,24 +4,22 @@ using EspDotNet.Tools.Firmware;
 
 namespace EspDotNet.Tools
 {
-    public class SoftloaderTool
+    public class SoftLoaderTool
     {
         private readonly Communicator _communicator;
-        private readonly UploadRamTool _uploadTool;
-        private readonly IFirmwareProvider _firmwareProvider;
+        private readonly IUploadTool _uploadTool;
 
-        public SoftloaderTool(Communicator communicator, UploadRamTool uploadTool, IFirmwareProvider firmwareProvider)
+        public SoftLoaderTool(Communicator communicator, IUploadTool uploadTool)
         {
             _communicator = communicator;
             _uploadTool = uploadTool;
-            _firmwareProvider = firmwareProvider;
         }
 
-        public async Task<SoftLoader> StartAsync(CancellationToken token = default)
+        public async Task<SoftLoader> StartAsync(IFirmwareProvider firmwareProvider, CancellationToken token = default)
         {
-            // Upload the stubloader
+            // Upload the StubLoader
             var firmwareTool = new FirmwareUploadTool(_uploadTool);
-            await firmwareTool.UploadFirmwareAndExecuteAsync(_firmwareProvider, token);
+            await firmwareTool.UploadFirmwareAndExecuteAsync(firmwareProvider, token);
 
             // Instantiate loader and synchronize
             SoftLoader softLoader = new SoftLoader(_communicator);

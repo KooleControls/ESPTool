@@ -10,66 +10,19 @@ using System.Threading.Tasks;
 
 namespace EspDotNet.Communication
 {
-    public class Communicator : IDisposable
+    public class Communicator
     {
         private readonly SerialPort _serialPort;
         private readonly SlipFraming _slipFraming;
 
-        public Communicator()
+        /// <summary>
+        /// Initializes a new Communicator using an existing open SerialPort.
+        /// The Communicator does not take ownership of the port and will not open, close or dispose it.
+        /// </summary>
+        public Communicator(SerialPort serialPort)
         {
-            _serialPort = new SerialPort();
+            _serialPort = serialPort ?? throw new ArgumentNullException(nameof(serialPort));
             _slipFraming = new SlipFraming(_serialPort);
-        }
-
-        /// <summary>
-        /// Opens the serial port with the specified port name and baud rate.
-        /// </summary>
-        /// <param name="portName">The name of the serial port to open.</param>
-        /// <param name="baudRate">The baud rate for the communication.</param>
-        public void OpenSerial(string portName, int baudRate)
-        {
-            if (_serialPort.IsOpen && (_serialPort.PortName != portName || _serialPort.BaudRate != baudRate))
-            {
-                _serialPort.Close();
-            }
-
-            if (!_serialPort.IsOpen)
-            {
-                _serialPort.PortName = portName;
-                _serialPort.BaudRate = baudRate;
-                _serialPort.Open();
-            }
-        }
-
-        /// <summary>
-        /// Closes the serial port.
-        /// </summary>
-        public void CloseSerial()
-        {
-            if (_serialPort.IsOpen)
-            {
-                _serialPort.Close();
-            }
-        }
-
-        /// <summary>
-        /// Gets the current baud rate of the serial port.
-        /// </summary>
-        /// <returns>The baud rate of the serial port.</returns>
-        public int GetBaudRate() => _serialPort.BaudRate;
-
-        /// <summary>
-        /// Changes the baud rate of the serial port.
-        /// </summary>
-        /// <param name="baudRate">The new baud rate for the communication.</param>
-        public void ChangeBaudRate(int baudRate)
-        {
-            if (_serialPort.IsOpen)
-                _serialPort.Close();
-
-            _serialPort.BaudRate = baudRate;
-            _serialPort.Open();
-            
         }
 
         /// <summary>
@@ -140,19 +93,6 @@ namespace EspDotNet.Communication
         public async Task WriteAsync(byte[] data, CancellationToken token)
         {
             await _serialPort.BaseStream.WriteAsync(data, 0, data.Length, token);
-        }
-
-
-        /// <summary>
-        /// Disposes the serial port and associated resources.
-        /// </summary>
-        public void Dispose()
-        {
-            if (_serialPort.IsOpen)
-            {
-                _serialPort.Close();
-            }
-            _serialPort.Dispose();
         }
 
         internal async Task FlushAsync(CancellationToken token)

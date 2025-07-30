@@ -3,7 +3,6 @@
 namespace EspDotNet.Utils
 {
 
-
     public class ZlibCompressionHelper
     {
         public static void CompressToZlibStream(Stream inputStream, Stream compressedStream)

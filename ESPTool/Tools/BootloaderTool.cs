@@ -17,14 +17,14 @@ namespace EspDotNet.Tools
             _bootloaderSequence = bootloaderSequence;
         }
 
-        public async Task<ESP32BootLoader> StartAsync(CancellationToken token = default)
+        public async Task<ESP32BootLoader> StartBootloaderAsync(CancellationToken token = default)
         {
             // Start bootloader
             await _communicator.ExecutePinSequence(_bootloaderSequence, token);
 
             // Check bootloader message
             if (!await TryReadBootStartup(token))
-                throw new Exception("Booloader message not verified");
+                throw new Exception("BootLoader message not verified");
 
             // Instantiate loader and synchronize
             var bootloader = new ESP32BootLoader(_communicator);
@@ -81,4 +81,5 @@ namespace EspDotNet.Tools
             return false;
         }
     }
+
 }
