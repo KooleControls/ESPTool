@@ -4,6 +4,7 @@ using EspDotNet.Loaders.SoftLoader;
 using EspDotNet.Utils;
 using System.Net;
 using System.Security.Cryptography;
+using System.Threading;
 
 namespace EspDotNet.Tools
 {
@@ -37,7 +38,9 @@ namespace EspDotNet.Tools
         {
             private readonly FlashDownloadTool _tool;
             private readonly uint _totalSize;
-            private uint _position = 0;
+            private uint _position; // Flash offset
+            private readonly Queue<byte> _buffer = new();
+            private readonly MD5 _md5 = MD5.Create();
 
             public FlashReadStream(FlashDownloadTool tool, uint address, uint size)
             {
@@ -48,40 +51,75 @@ namespace EspDotNet.Tools
 
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                uint size = (uint)count;
+                if (_position >= _totalSize && _buffer.Count == 0)
+                    return 0;
 
-                if (_position >= _totalSize) return 0;
-                if (_position + count >= _totalSize)
-                    size = _totalSize - _position;
+                int bytesReturned = 0;
 
-                await _tool._softLoader.FlashReadBeginAsync(_position, size, _tool.BlockSize, _tool.MaxInFlight, cancellationToken);
-                MD5 md5 = MD5.Create();
+                bytesReturned += ReadFromBuffer(buffer, offset, count);
+                bytesReturned += await ReadFromDeviceAsync(buffer, offset + bytesReturned, count - bytesReturned, cancellationToken);
 
-                uint bytesRead = 0;
-                while(bytesRead < size)
+                return bytesReturned;
+            }
+
+            private int ReadFromBuffer(byte[] buffer, int offset, int count)
+            {
+                int bytesRead = 0;
+                while (_buffer.Count > 0 && bytesRead < count)
+                {
+                    buffer[offset + bytesRead++] = _buffer.Dequeue();
+                }
+                return bytesRead;
+            }
+
+            private async Task<int> ReadFromDeviceAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                int remainingBytes = (int)(_totalSize - _position);
+                if (remainingBytes <= 0)
+                    return 0;
+
+                int toRead = Math.Max(count, (int)_tool.BlockSize);
+                toRead = Math.Min(toRead, remainingBytes);
+
+                _md5.Initialize();
+                await _tool._softLoader.FlashReadBeginAsync(_position, (uint)toRead, _tool.BlockSize, _tool.MaxInFlight, cancellationToken);
+
+                int bytesCopiedToCaller = 0;
+
+                while (bytesCopiedToCaller < count && toRead > 0)
                 {
                     var frame = await _tool._communicator.ReadFrameAsync(cancellationToken);
                     if (frame?.Data == null)
                         throw new IOException("Failed to receive flash data frame.");
 
-                    Array.Copy(frame.Data, 0, buffer, offset + (int)bytesRead, frame.Data.Length);
-                    md5.TransformBlock(frame.Data, 0, frame.Data.Length, null, 0);
-                    bytesRead += (uint)frame.Data.Length;
+                    _md5.TransformBlock(frame.Data, 0, frame.Data.Length, null, 0);
 
-                    await _tool._softLoader.FlashReadAckAsync(bytesRead, cancellationToken);
+                    int remainingCallerBuffer = count - bytesCopiedToCaller;
+                    int copyCount = Math.Min(remainingCallerBuffer, frame.Data.Length);
+
+                    Array.Copy(frame.Data, 0, buffer, offset + bytesCopiedToCaller, copyCount);
+                    bytesCopiedToCaller += copyCount;
+
+                    // Buffer the rest if any
+                    for (int i = copyCount; i < frame.Data.Length; i++)
+                        _buffer.Enqueue(frame.Data[i]);
+
                     _position += (uint)frame.Data.Length;
+                    toRead -= frame.Data.Length;
+
+                    await _tool._softLoader.FlashReadAckAsync(_position, cancellationToken);
                     _tool.Progress.Report((float)_position / _totalSize);
                 }
 
-                await VerifyMd5Async(md5, cancellationToken);
+                _md5.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                await VerifyMd5Async(_md5, cancellationToken);
 
-                return (int)size;
+                return bytesCopiedToCaller;
             }
 
 
             private async Task VerifyMd5Async(MD5 md5, CancellationToken token)
             {
-                md5.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                 var hashFrame = await _tool._communicator.ReadFrameAsync(token);
                 var computedHash = md5.Hash ?? throw new InvalidOperationException("Hash not computed yet.");
                 var expectedHash = hashFrame?.Data ?? throw new Exception("Expected hash frame");
@@ -92,7 +130,7 @@ namespace EspDotNet.Tools
                     {
                         var expected = BitConverter.ToString(expectedHash).Replace("-", "");
                         var computed = BitConverter.ToString(computedHash).Replace("-", "");
-                        throw new InvalidOperationException($"MD5 verification failed: expected \n    {expected}, got \n    {computed}");
+                        throw new InvalidOperationException($"MD5 verification failed:\n  Expected: {expected}\n  Computed: {computed}");
                     }
                 }
             }

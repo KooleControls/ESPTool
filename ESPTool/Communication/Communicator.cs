@@ -33,6 +33,7 @@ namespace EspDotNet.Communication
             if (_serialPort.IsOpen)
             {
                 _serialPort.DiscardInBuffer();
+                _serialPort.DiscardOutBuffer();
             }
         }
 
